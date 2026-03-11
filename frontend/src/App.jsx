@@ -3,6 +3,8 @@ import { fetchBakeries, deleteBakery } from "./api";
 import MapView from "./components/MapView";
 import BakeryList from "./components/BakeryList";
 import AddBakeryForm from "./components/AddBakeryForm";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import LoginForm from "./components/LoginForm";
 
 const NAV_LINKS = [
   { label: "Map", href: "#map" },
@@ -10,20 +12,22 @@ const NAV_LINKS = [
   { label: "New Visit", href: "#add" },
 ];
 
-export default function App() {
+function AppContent() {
+  const { accessToken, loading, logout } = useAuth();
   const [bakeries, setBakeries] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [bakeriesLoading, setBakeriesLoading] = useState(true);
 
   const loadBakeries = useCallback(async () => {
-    setLoading(true);
+    if (!accessToken) return;
+    setBakeriesLoading(true);
     try {
-      setBakeries(await fetchBakeries());
+      setBakeries(await fetchBakeries(accessToken));
     } catch (err) {
       console.error(err);
     } finally {
-      setLoading(false);
+      setBakeriesLoading(false);
     }
-  }, []);
+  }, [accessToken]);
 
   useEffect(() => {
     loadBakeries();
@@ -32,11 +36,23 @@ export default function App() {
   async function handleDelete(id) {
     if (!confirm("Delete this bakery?")) return;
     try {
-      await deleteBakery(id);
+      await deleteBakery(accessToken, id);
       loadBakeries();
     } catch (err) {
       console.error(err);
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#faf8f5] flex items-center justify-center">
+        <p className="text-stone-400 text-sm">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!accessToken) {
+    return <LoginForm />;
   }
 
   return (
@@ -58,6 +74,12 @@ export default function App() {
                 {label}
               </a>
             ))}
+            <button
+              onClick={logout}
+              className="ml-2 px-3 py-1.5 text-sm text-stone-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
+            >
+              Log out
+            </button>
           </div>
         </div>
       </nav>
@@ -113,7 +135,7 @@ export default function App() {
       {/* Bakeries */}
       <section id="bakeries" className="scroll-mt-14 pt-10 pb-14">
         <div className="max-w-4xl mx-auto px-6">
-          <BakeryList bakeries={bakeries} loading={loading} onDelete={handleDelete} />
+          <BakeryList bakeries={bakeries} loading={bakeriesLoading} onDelete={handleDelete} />
         </div>
       </section>
 
@@ -123,7 +145,7 @@ export default function App() {
         <div className="h-px bg-gradient-to-r from-transparent via-amber-200/40 to-transparent"></div>
         <div className="relative max-w-4xl mx-auto px-6 py-14">
           <div className="max-w-md">
-            <AddBakeryForm onAdded={loadBakeries} />
+            <AddBakeryForm onAdded={loadBakeries} token={accessToken} />
           </div>
         </div>
       </section>
@@ -137,5 +159,13 @@ export default function App() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }

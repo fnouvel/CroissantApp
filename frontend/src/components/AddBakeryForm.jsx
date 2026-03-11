@@ -3,7 +3,7 @@ import { createBakery, createRating } from "../api";
 import StarRating from "./StarRating";
 import PlaceSearch from "./PlaceSearch";
 
-export default function AddBakeryForm({ onAdded }) {
+export default function AddBakeryForm({ onAdded, token }) {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [score, setScore] = useState(0);
@@ -24,9 +24,9 @@ export default function AddBakeryForm({ onAdded }) {
     setError(null);
     setSuccess(false);
     try {
-      const bakery = await createBakery({ name, address });
+      const bakery = await createBakery(token, { name, address });
       if (score > 0) {
-        await createRating(bakery.id, {
+        await createRating(token, bakery.id, {
           score,
           notes: notes || null,
           visited_at: visitedAt,
