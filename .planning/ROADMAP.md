@@ -10,7 +10,7 @@ The existing MVP has basic bakery CRUD, a Leaflet map, and simple star ratings w
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 1: Auth and Database Foundation** - Users can log in; all routes protected; Alembic manages schema migrations
+- [x] **Phase 1: Auth and Database Foundation** - Users can log in; all routes protected; Alembic manages schema migrations (completed 2026-03-11)
 - [ ] **Phase 2: Ratings and Bakeries** - Category ratings replace simple stars; bakery detail shows full group breakdown
 - [ ] **Phase 3: Photo Uploads** - Optional photo per rating visit with server-side validation
 - [ ] **Phase 4: Map Polish and Design** - Beautiful map with pin states; warm design; responsive on phone; Boston seed data loaded
@@ -27,7 +27,7 @@ The existing MVP has basic bakery CRUD, a Leaflet map, and simple star ratings w
   3. User can log out from any page in the app
   4. All API endpoints reject unauthenticated requests (returning 401)
   5. Existing bakery and rating data is preserved after the schema migration
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 01-01-PLAN.md — Backend auth foundation: Alembic, User model, migration, auth endpoints, tests
@@ -75,7 +75,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Auth and Database Foundation | 2/3 | In Progress|  |
+| 1. Auth and Database Foundation | 3/3 | Complete   | 2026-03-11 |
 | 2. Ratings and Bakeries | 0/? | Not started | - |
 | 3. Photo Uploads | 0/? | Not started | - |
 | 4. Map Polish and Design | 0/? | Not started | - |
