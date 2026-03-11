@@ -27,7 +27,7 @@ The existing MVP has basic bakery CRUD, a Leaflet map, and simple star ratings w
   3. User can log out from any page in the app
   4. All API endpoints reject unauthenticated requests (returning 401)
   5. Existing bakery and rating data is preserved after the schema migration
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 - [ ] 01-01-PLAN.md — Backend auth foundation: Alembic, User model, migration, auth endpoints, tests
@@ -75,7 +75,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Auth and Database Foundation | 0/3 | Planning complete | - |
+| 1. Auth and Database Foundation | 1/3 | In Progress|  |
 | 2. Ratings and Bakeries | 0/? | Not started | - |
 | 3. Photo Uploads | 0/? | Not started | - |
 | 4. Map Polish and Design | 0/? | Not started | - |
