@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-01-PLAN.md — auth backend complete with 9 passing tests
-last_updated: "2026-03-11T23:38:12.399Z"
+stopped_at: Completed 01-02-PLAN.md — frontend auth wiring complete
+last_updated: "2026-03-11T23:44:24.666Z"
 last_activity: 2026-03-11 — Roadmap created
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 33
 ---
 
@@ -51,6 +51,7 @@ Progress: [███░░░░░░░] 33%
 
 *Updated after each plan completion*
 | Phase 01-auth-and-database-foundation P01 | 5min | 2 tasks | 16 files |
+| Phase 01-auth-and-database-foundation P02 | 3min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -65,6 +66,8 @@ Recent decisions affecting current work:
 - [Phase 01-01]: StaticPool required for in-memory SQLite test fixtures — default pool creates new connection per query, each with empty DB
 - [Phase 01-01]: Manual Alembic migration over autogenerate — sentinel user INSERT must precede FK column additions; idempotency guards added for pre-existing users table
 - [Phase 01-01]: secure=False on refresh cookie when DEBUG=true — must be flipped to True in production HTTPS environment
+- [Phase Phase 01-02]: ESLint react-refresh/only-export-components downgraded to warn for context+hook co-location pattern
+- [Phase Phase 01-02]: Token passed as prop to AddBakeryForm rather than calling useAuth() inside child components — keeps data flow explicit
 
 ### Pending Todos
 
@@ -78,6 +81,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-11T23:38:12.398Z
-Stopped at: Completed 01-01-PLAN.md — auth backend complete with 9 passing tests
+Last session: 2026-03-11T23:44:24.664Z
+Stopped at: Completed 01-02-PLAN.md — frontend auth wiring complete
 Resume file: None
