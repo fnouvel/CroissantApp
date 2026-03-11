@@ -3,3 +3,9 @@ uvicorn[standard]
 sqlalchemy
 httpx
 pydantic
+alembic
+PyJWT==2.11.0
+pwdlib[argon2]==0.3.0
+python-dotenv
+pytest
+pytest-asyncio

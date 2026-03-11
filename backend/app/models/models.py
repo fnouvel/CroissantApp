@@ -1,9 +1,19 @@
 from datetime import datetime, date
 
-from sqlalchemy import Column, Integer, String, Float, Text, Date, DateTime, ForeignKey
+from sqlalchemy import Boolean, Column, Integer, String, Float, Text, Date, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.database import Base
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, nullable=False, unique=True)
+    hashed_password = Column(String, nullable=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 class Bakery(Base):
@@ -15,6 +25,7 @@ class Bakery(Base):
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
     ratings = relationship("Rating", back_populates="bakery", cascade="all, delete-orphan")
 
@@ -28,5 +39,6 @@ class Rating(Base):
     notes = Column(Text, nullable=True)
     visited_at = Column(Date, default=date.today)
     created_at = Column(DateTime, default=datetime.utcnow)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
     bakery = relationship("Bakery", back_populates="ratings")
