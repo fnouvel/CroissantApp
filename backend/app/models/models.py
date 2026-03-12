@@ -35,10 +35,15 @@ class Rating(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     bakery_id = Column(Integer, ForeignKey("bakeries.id"), nullable=False)
-    score = Column(Integer, nullable=False)
+    flakiness = Column(Integer, nullable=False)
+    butteriness = Column(Integer, nullable=False)
+    freshness = Column(Integer, nullable=False)
+    size_value = Column(Integer, nullable=False)
+    score = Column(Float, nullable=False)
     notes = Column(Text, nullable=True)
     visited_at = Column(Date, default=date.today)
     created_at = Column(DateTime, default=datetime.utcnow)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
     bakery = relationship("Bakery", back_populates="ratings")
+    user = relationship("User")

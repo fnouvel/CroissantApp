@@ -45,7 +45,7 @@ export async function deleteBakery(token, id) {
   if (!res.ok) throw new Error("Failed to delete bakery");
 }
 
-export async function createRating(token, bakeryId, data) {
+export async function createRating(token, bakeryId, { flakiness, butteriness, freshness, size_value, notes, visited_at }) {
   const res = await fetch(`${API}/bakeries/${bakeryId}/ratings`, {
     method: "POST",
     credentials: "include",
@@ -53,9 +53,19 @@ export async function createRating(token, bakeryId, data) {
       "Content-Type": "application/json",
       Authorization: "Bearer " + token,
     },
-    body: JSON.stringify(data),
+    body: JSON.stringify({ flakiness, butteriness, freshness, size_value, notes, visited_at }),
   });
   if (res.status === 401) throw new Error("Unauthorized");
   if (!res.ok) throw new Error("Failed to create rating");
+  return res.json();
+}
+
+export async function fetchMyRatings(token) {
+  const res = await fetch(`${API}/ratings/me`, {
+    credentials: "include",
+    headers: { Authorization: "Bearer " + token },
+  });
+  if (res.status === 401) throw new Error("Unauthorized");
+  if (!res.ok) throw new Error("Failed to fetch ratings");
   return res.json();
 }

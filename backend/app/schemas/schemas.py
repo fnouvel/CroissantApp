@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class BakeryCreate(BaseModel):
@@ -8,21 +8,50 @@ class BakeryCreate(BaseModel):
 
 
 class RatingCreate(BaseModel):
-    score: int = Field(ge=1, le=5)
+    flakiness: int = Field(ge=1, le=5)
+    butteriness: int = Field(ge=1, le=5)
+    freshness: int = Field(ge=1, le=5)
+    size_value: int = Field(ge=1, le=5)
     notes: str | None = None
     visited_at: date | None = None
+
+    @field_validator("flakiness", "butteriness", "freshness", "size_value")
+    @classmethod
+    def score_in_range(cls, v: int) -> int:
+        if not 1 <= v <= 5:
+            raise ValueError("Score must be between 1 and 5")
+        return v
 
 
 class RatingOut(BaseModel):
     id: int
     bakery_id: int
-    score: int
+    flakiness: int
+    butteriness: int
+    freshness: int
+    size_value: int
+    overall_score: float
     notes: str | None
     visited_at: date
     created_at: datetime
+    username: str | None = None
 
     class Config:
         from_attributes = True
+
+
+class RatingWithBakery(RatingOut):
+    """Rating including bakery name, used for user history."""
+    bakery_name: str
+
+
+class BakeryAggregate(BaseModel):
+    avg_flakiness: float | None = None
+    avg_butteriness: float | None = None
+    avg_freshness: float | None = None
+    avg_size_value: float | None = None
+    avg_overall: float | None = None
+    rating_count: int = 0
 
 
 class BakeryOut(BaseModel):
@@ -40,6 +69,7 @@ class BakeryOut(BaseModel):
 
 class BakeryDetail(BakeryOut):
     ratings: list[RatingOut]
+    aggregate: BakeryAggregate | None = None
 
 
 class UserCreate(BaseModel):
