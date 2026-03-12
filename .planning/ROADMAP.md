@@ -11,7 +11,7 @@ The existing MVP has basic bakery CRUD, a Leaflet map, and simple star ratings w
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
 - [x] **Phase 1: Auth and Database Foundation** - Users can log in; all routes protected; Alembic manages schema migrations (completed 2026-03-11)
-- [ ] **Phase 2: Ratings and Bakeries** - Category ratings replace simple stars; bakery detail shows full group breakdown
+- [x] **Phase 2: Ratings and Bakeries** - Category ratings replace simple stars; bakery detail shows full group breakdown (completed 2026-03-11)
 - [ ] **Phase 3: Photo Uploads** - Optional photo per rating visit with server-side validation
 - [ ] **Phase 4: Map Polish and Design** - Beautiful map with pin states; warm design; responsive on phone; Boston seed data loaded
 
@@ -44,7 +44,10 @@ Plans:
   3. User can view a list of all their past ratings with bakery name, date, and scores
   4. User can add a new bakery by entering a name and address (address auto-geocoded to coordinates)
   5. Bakery detail page shows every group member's rating with per-category breakdown and a group aggregate score
-**Plans**: TBD
+**Plans**: 1/1 plans complete (combined backend+frontend)
+
+Plans:
+- [x] 02-01-PLAN.md — Backend category ratings + frontend Modern Boulangerie redesign
 
 ### Phase 3: Photo Uploads
 **Goal**: Users can attach an optional photo to any rating, making visits feel tangible and memorable
@@ -76,6 +79,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Auth and Database Foundation | 3/3 | Complete   | 2026-03-11 |
-| 2. Ratings and Bakeries | 0/? | Not started | - |
+| 2. Ratings and Bakeries | 1/1 | Complete   | 2026-03-11 |
 | 3. Photo Uploads | 0/? | Not started | - |
 | 4. Map Polish and Design | 0/? | Not started | - |

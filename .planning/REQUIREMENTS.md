@@ -15,9 +15,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Ratings
 
-- [ ] **RATE-01**: User can rate a croissant on 4 categories: flakiness, butteriness, freshness, size/value (1-5 each)
-- [ ] **RATE-02**: Composite overall score auto-calculated from category averages
-- [ ] **RATE-03**: User can view their own past rating history
+- [x] **RATE-01**: User can rate a croissant on 4 categories: flakiness, butteriness, freshness, size/value (1-5 each)
+- [x] **RATE-02**: Composite overall score auto-calculated from category averages
+- [x] **RATE-03**: User can view their own past rating history
 - [ ] **RATE-04**: User can optionally upload a photo with their rating
 
 ### Map & Discovery
@@ -28,9 +28,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Bakeries
 
-- [ ] **BAKE-01**: User can add a new bakery with name and address (auto-geocoded)
-- [ ] **BAKE-02**: Bakery detail page shows all ratings from all users with per-member breakdown
-- [ ] **BAKE-03**: Bakery detail shows group aggregate score
+- [x] **BAKE-01**: User can add a new bakery with name and address (auto-geocoded)
+- [x] **BAKE-02**: Bakery detail page shows all ratings from all users with per-member breakdown
+- [x] **BAKE-03**: Bakery detail shows group aggregate score
 - [ ] **BAKE-04**: App pre-loaded with 15-20 Boston bakeries as seed data
 
 ### Design
@@ -79,16 +79,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-01 | Phase 1 | Complete |
 | AUTH-02 | Phase 1 | Complete |
 | AUTH-03 | Phase 1 | Complete |
-| RATE-01 | Phase 2 | Pending |
-| RATE-02 | Phase 2 | Pending |
-| RATE-03 | Phase 2 | Pending |
+| RATE-01 | Phase 2 | Complete |
+| RATE-02 | Phase 2 | Complete |
+| RATE-03 | Phase 2 | Complete |
 | RATE-04 | Phase 3 | Pending |
 | MAP-01 | Phase 4 | Pending |
 | MAP-02 | Phase 4 | Pending |
 | MAP-03 | Phase 4 | Pending |
-| BAKE-01 | Phase 2 | Pending |
-| BAKE-02 | Phase 2 | Pending |
-| BAKE-03 | Phase 2 | Pending |
+| BAKE-01 | Phase 2 | Complete |
+| BAKE-02 | Phase 2 | Complete |
+| BAKE-03 | Phase 2 | Complete |
 | BAKE-04 | Phase 4 | Pending |
 | DSGN-01 | Phase 4 | Pending |
 | DSGN-02 | Phase 4 | Pending |
