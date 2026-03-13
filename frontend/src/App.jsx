@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { fetchBakeries, fetchMyRatings, createRating, createBakery } from "./api";
+import { fetchBakeries, fetchBakery, fetchMyRatings, createRating, createBakery } from "./api";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import LoginForm from "./components/LoginForm";
 import MapView from "./components/MapView";
@@ -207,14 +207,43 @@ function HomeView({ bakeries, ratings, onNavigate }) {
 /* ═══════════════════════════════════════════════════
    MAP VIEW (Explore)
    ═══════════════════════════════════════════════════ */
-function MapTab({ bakeries }) {
+function MapTab({ bakeries, token }) {
+  const [selectedBakery, setSelectedBakery] = useState(null);
+  const [bakeryDetail, setBakeryDetail] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+
+  const handleBakeryClick = useCallback(async (bakery) => {
+    if (!bakery) {
+      setSelectedBakery(null);
+      setBakeryDetail(null);
+      return;
+    }
+    setSelectedBakery(bakery);
+    setBakeryDetail(null);
+    setDetailLoading(true);
+    try {
+      const detail = await fetchBakery(token, bakery.id);
+      setBakeryDetail(detail);
+    } catch (err) {
+      console.error("Failed to fetch bakery detail:", err);
+    } finally {
+      setDetailLoading(false);
+    }
+  }, [token]);
+
   return (
     <section className="view active">
       <div className="map-topbar glass">
         <h2>Explore Bakeries</h2>
       </div>
       <div style={{ flex: 1, minHeight: 0 }}>
-        <MapView bakeries={bakeries} onBakerySelect={() => {}} />
+        <MapView
+          bakeries={bakeries}
+          onBakeryClick={handleBakeryClick}
+          selectedBakery={selectedBakery}
+          bakeryDetail={bakeryDetail}
+          detailLoading={detailLoading}
+        />
       </div>
     </section>
   );
@@ -385,7 +414,7 @@ function AddBakeryModal({ token, onAdded, onClose }) {
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <PlaceSearch
             onSelect={handlePlaceSelect}
-            inputClass="w-full rounded-xl border border-[#E8E4DC] bg-[#F9F6F1] px-4 py-3 text-sm text-[#2D2D2D] placeholder:text-[#2D2D2D]/25 focus:outline-none focus:ring-2 focus:ring-[#D27D56]/20 focus:border-[#D27D56]/40 transition-all"
+            inputClass="w-full rounded-xl border border-[#D2DBCE] bg-[#F2F5F0] px-4 py-3 text-sm text-[#2A3528] placeholder:text-[#2A3528]/25 focus:outline-none focus:ring-2 focus:ring-[#D27D56]/20 focus:border-[#D27D56]/40 transition-all"
           />
           <div className="field">
             <label>Name</label>
@@ -540,7 +569,7 @@ function MainApp() {
       {/* Main content */}
       <main className="main-content">
         {activeTab === "home" && <HomeView bakeries={bakeries} ratings={ratings} onNavigate={setActiveTab} />}
-        {activeTab === "map" && <MapTab bakeries={bakeries} />}
+        {activeTab === "map" && <MapTab bakeries={bakeries} token={accessToken} />}
         {activeTab === "rate" && (
           <RateView bakeries={bakeries} token={accessToken} onRated={handleRated} onAddBakery={handleBakeryAdded} />
         )}
@@ -577,7 +606,7 @@ function AppContent() {
       <div className="login-page">
         <div style={{ textAlign: "center" }}>
           <span className="login-emoji">🥐</span>
-          <p style={{ color: "rgba(255,255,255,.5)", fontSize: 14 }}>Loading...</p>
+          <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Loading...</p>
         </div>
       </div>
     );

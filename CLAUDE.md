@@ -68,7 +68,7 @@ npm run lint         # lint
 
 ## Design System
 - **Fonts**: Fraunces (serif headings) + Inter (body)
-- **Colors**: #F4F1EA (oat bg), #FFFCF9 (cream surface), #D27D56 (terracotta accent), #8A9A86 (sage muted), #2D2824 (warm charcoal dark)
+- **Colors**: #F4F7F2 (sage bg), #FAFBF9 (sage surface), #D27D56 (terracotta accent), #7E8F78 (sage muted), #2A3528 (deep sage dark)
 - **Layout**: Desktop sidebar + mobile bottom tab bar, 4 views
 - **Rating**: 🥐 emoji buttons for flakiness, butteriness, freshness, size/value (1-5 each)
 

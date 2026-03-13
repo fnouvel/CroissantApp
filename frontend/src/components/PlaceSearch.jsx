@@ -76,7 +76,7 @@ export default function PlaceSearch({ onSelect, inputClass }) {
 
   return (
     <div ref={wrapperRef} className="relative">
-      <label className="block text-xs font-medium text-[#8A9A86] mb-1.5 uppercase tracking-wider">Search for a place</label>
+      <label className="block text-xs font-medium text-[var(--text-muted)] mb-1.5 uppercase tracking-wider">Search for a place</label>
       <div className="relative">
         <input
           type="text"
@@ -91,24 +91,24 @@ export default function PlaceSearch({ onSelect, inputClass }) {
         />
         {loading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <div className="w-4 h-4 border-2 border-[#E8E4DC] border-t-[#D27D56] rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-[#D2DBCE] border-t-[#D27D56] rounded-full animate-spin" />
           </div>
         )}
       </div>
 
       {open && results.length > 0 && (
-        <ul className="absolute z-30 mt-1 w-full bg-[#FFFCF9] rounded-xl border border-[#E8E4DC]/60 shadow-lg overflow-hidden max-h-64 overflow-y-auto">
+        <ul className="absolute z-30 mt-1 w-full bg-[var(--surface)] rounded-xl border border-[#D2DBCE]/60 shadow-lg overflow-hidden max-h-64 overflow-y-auto">
           {results.map((r) => (
             <li key={r.place_id}>
               <button
                 type="button"
                 onClick={() => handleSelect(r)}
-                className="w-full text-left px-4 py-3 hover:bg-[#F4F1EA] transition-colors cursor-pointer border-b border-[#E8E4DC]/40 last:border-0"
+                className="w-full text-left px-4 py-3 hover:bg-[var(--bg)] transition-colors cursor-pointer border-b border-[#D2DBCE]/40 last:border-0"
               >
-                <p className="text-sm font-medium text-[#2D2D2D] truncate">
+                <p className="text-sm font-medium text-[var(--text)] truncate">
                   {r.name && r.name !== r.display_name.split(",")[0] ? r.name : r.display_name.split(",")[0]}
                 </p>
-                <p className="text-xs text-[#8A9A86] truncate mt-0.5">{r.display_name}</p>
+                <p className="text-xs text-[var(--text-muted)] truncate mt-0.5">{r.display_name}</p>
               </button>
             </li>
           ))}
