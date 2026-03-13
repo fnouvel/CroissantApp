@@ -30,7 +30,7 @@ CroissantApp/
 │   ├── src/
 │   │   ├── App.jsx              # Tab-based SPA (Home/Explore/Rate/Journal)
 │   │   ├── api.js               # API layer
-│   │   ├── index.css            # Full design system (warm bakery tokens)
+│   │   ├── index.css            # Full design system (French Blue Morning Garden)
 │   │   ├── context/
 │   │   │   └── AuthContext.jsx   # Auth state + token management
 │   │   └── components/
@@ -67,8 +67,8 @@ npm run lint         # lint
 ```
 
 ## Design System
-- **Fonts**: Fraunces (serif headings) + Inter (body)
-- **Colors**: #F4F7F2 (sage bg), #FAFBF9 (sage surface), #D27D56 (terracotta accent), #7E8F78 (sage muted), #2A3528 (deep sage dark)
+- **Fonts**: Fraunces (serif headings) + DM Sans (body)
+- **Colors**: French Blue Morning Garden — #F9F5EE (linen bg), #FFFFFF (white card surfaces), #4A6FA5 (French blue primary), #2E4A7A (blue-deep), #E2C68A (butter accent), #C2785A (terracotta CTA), #1E2D3D (iron text)
 - **Layout**: Desktop sidebar + mobile bottom tab bar, 4 views
 - **Rating**: 🥐 emoji buttons for flakiness, butteriness, freshness, size/value (1-5 each)
 

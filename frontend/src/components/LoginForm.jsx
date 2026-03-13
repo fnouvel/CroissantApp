@@ -43,12 +43,12 @@ export default function LoginForm() {
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {error && (
               <div style={{
-                background: "#fef2f2",
-                color: "#dc2626",
+                background: "#FCEAE4",
+                color: "#C2785A",
                 fontSize: 13,
                 padding: "10px 14px",
-                borderRadius: 12,
-                border: "1px solid #fee2e2",
+                borderRadius: 10,
+                border: "1px solid #F0D8C8",
               }}>
                 {error}
               </div>
@@ -101,7 +101,7 @@ export default function LoginForm() {
           </div>
         </div>
 
-        <p style={{ textAlign: "center", fontSize: 12, color: "rgba(255,255,255,.35)", marginTop: 24 }}>
+        <p style={{ textAlign: "center", fontSize: 12, color: "var(--pebble)", marginTop: 24 }}>
           made with butter & love
         </p>
       </div>

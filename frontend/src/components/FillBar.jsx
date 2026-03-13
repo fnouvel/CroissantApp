@@ -14,11 +14,11 @@ export default function FillBar({ label, value, maxValue = 5, size = "md" }) {
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-      <span style={{ fontSize: 12, color: "var(--text-muted)", width: 80, flexShrink: 0 }}>{label}</span>
-      <div style={{ flex: 1, height: barHeight, background: "var(--border)", borderRadius: barHeight, overflow: "hidden" }}>
+      <span style={{ fontSize: 12, color: "var(--stone)", width: 80, flexShrink: 0 }}>{label}</span>
+      <div style={{ flex: 1, height: barHeight, background: "var(--cloud)", borderRadius: barHeight, overflow: "hidden" }}>
         <div
           className="fill-bar-inner"
-          style={{ height: "100%", borderRadius: barHeight, width: `${width}%`, background: "var(--accent)" }}
+          style={{ height: "100%", borderRadius: barHeight, width: `${width}%`, background: "var(--blue-mid)" }}
         />
       </div>
       <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text)", width: 24, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>

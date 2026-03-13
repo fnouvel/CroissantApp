@@ -47,7 +47,7 @@ function Toast({ message }) {
 function CroissantRating({ value, onChange, label }) {
   return (
     <div>
-      {label && <label className="block text-sm font-semibold text-[--text-soft] mb-1.5">{label}</label>}
+      {label && <label className="block text-sm font-semibold text-[var(--stone)] mb-1.5">{label}</label>}
       <div className="croissant-rating">
         {[1, 2, 3, 4, 5].map((n) => (
           <button
@@ -286,7 +286,7 @@ function RateView({ bakeries, token, onRated, onAddBakery }) {
     <section className="view active">
       <div className="view-topbar glass">
         <h2>Rate a Croissant</h2>
-        {avg && <span className="count-badge" style={{ color: "var(--accent)", fontWeight: 700, fontSize: 15 }}>{avg}</span>}
+        {avg && <span className="count-badge" style={{ color: "var(--blue-mid)", fontWeight: 700, fontSize: 15 }}>{avg}</span>}
       </div>
       <div className="view-scroll">
         <div className="container container-sm">
@@ -409,12 +409,12 @@ function AddBakeryModal({ token, onAdded, onClose }) {
           <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "var(--text-muted)" }}>×</button>
         </div>
 
-        {error && <div style={{ background: "#fef2f2", color: "#dc2626", fontSize: 13, padding: "10px 14px", borderRadius: 12, marginBottom: 12, border: "1px solid #fee2e2" }}>{error}</div>}
+        {error && <div style={{ background: "#FCEAE4", color: "#C2785A", fontSize: 13, padding: "10px 14px", borderRadius: 10, marginBottom: 12, border: "1px solid #F0D8C8" }}>{error}</div>}
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <PlaceSearch
             onSelect={handlePlaceSelect}
-            inputClass="w-full rounded-xl border border-[#D2DBCE] bg-[#F2F5F0] px-4 py-3 text-sm text-[#2A3528] placeholder:text-[#2A3528]/25 focus:outline-none focus:ring-2 focus:ring-[#D27D56]/20 focus:border-[#D27D56]/40 transition-all"
+            inputClass="w-full rounded-[10px] border border-[#DDE3E8] bg-white px-4 py-3 text-sm text-[#1E2D3D] placeholder:text-[#A8B5BF] focus:outline-none focus:ring-2 focus:ring-[#7BA0CC]/15 focus:border-[#7BA0CC] transition-all"
           />
           <div className="field">
             <label>Name</label>
