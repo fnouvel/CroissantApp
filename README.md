@@ -34,41 +34,45 @@ This will:
 
 ## Running the App
 
-You need **two terminal windows** open at the same time:
-
-### Terminal 1 - Backend (API server)
+The easiest way — starts both servers in one terminal:
 
 ```bash
-cd backend
-source venv/bin/activate
-uvicorn app.main:app --reload
+make start
 ```
 
-This starts the API at http://localhost:8000.
+Press Ctrl+C to stop both servers. Open http://localhost:5173 in your browser.
 
-### Terminal 2 - Frontend (web app)
+Or start them separately in two terminals:
 
 ```bash
-cd frontend
-npm run dev
+make start-backend   # Terminal 1 — API at http://localhost:8000
+make start-frontend  # Terminal 2 — Web app at http://localhost:5173
 ```
-
-This starts the web app at http://localhost:5173. Open this URL in your browser.
 
 ## Seed Data (Optional)
 
-With the backend server running, open a **third terminal**:
+With the app running (`make start`), open another terminal and run:
 
 ```bash
-cd backend
-source venv/bin/activate
-
-# Add 15 real Boston bakeries to the map
-python seed_bakeries.py
-
-# Create a test account (username: flore-test, password: croissant123)
-python seed_dev_user.py
+make seed
 ```
+
+This adds 15 real Boston bakeries to the map and creates a test account (username: `flore-test`, password: `croissant123`).
+
+## All Commands
+
+| Command | What it does |
+|---------|-------------|
+| `make setup` | Run full setup (same as `bash setup.sh`) |
+| `make start` | Start backend + frontend together |
+| `make start-backend` | Start only the API server |
+| `make start-frontend` | Start only the web app |
+| `make seed` | Seed bakeries + test user |
+| `make seed-bakeries` | Seed just the 15 Boston bakeries |
+| `make seed-user` | Seed just the test user |
+| `make test` | Run backend tests |
+| `make migrate` | Run database migrations |
+| `make lint` | Lint backend + frontend |
 
 ## Project Structure
 
@@ -78,18 +82,9 @@ CroissantApp/
 ├── frontend/       React web app (Vite + Tailwind)
 ├── .planning/      GSD workflow state (ignore this)
 ├── CLAUDE.md       Instructions for Claude Code
+├── Makefile        All the commands above
 └── setup.sh        One-command setup script
 ```
-
-## Useful Commands
-
-| What | Command |
-|------|---------|
-| Run backend tests | `cd backend && source venv/bin/activate && pytest` |
-| Lint backend | `cd backend && source venv/bin/activate && ruff check .` |
-| Lint frontend | `cd frontend && npm run lint` |
-| Build frontend for production | `cd frontend && npm run build` |
-| Run new database migrations | `cd backend && source venv/bin/activate && alembic upgrade head` |
 
 ## Working with Claude Code
 
