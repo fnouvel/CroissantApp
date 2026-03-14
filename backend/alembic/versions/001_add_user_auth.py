@@ -49,21 +49,47 @@ def upgrade() -> None:
         "VALUES (1, 'legacy', 'NOT_A_REAL_HASH', 1)"
     )
 
-    # 3. Add user_id column to bakeries and backfill
-    if not _column_exists("bakeries", "user_id"):
-        with op.batch_alter_table("bakeries") as batch_op:
-            batch_op.add_column(sa.Column("user_id", sa.Integer(), nullable=True))
-            batch_op.create_foreign_key("fk_bakeries_user_id", "users", ["user_id"], ["id"])
+    # 3. Create bakeries table (fresh DB) or add user_id column (existing DB)
+    if not _table_exists("bakeries"):
+        op.create_table(
+            "bakeries",
+            sa.Column("id", sa.Integer(), nullable=False),
+            sa.Column("name", sa.String(), nullable=False),
+            sa.Column("address", sa.String(), nullable=False),
+            sa.Column("latitude", sa.Float(), nullable=True),
+            sa.Column("longitude", sa.Float(), nullable=True),
+            sa.Column("created_at", sa.DateTime(), nullable=True),
+            sa.Column("user_id", sa.Integer(), sa.ForeignKey("users.id"), nullable=True),
+            sa.PrimaryKeyConstraint("id"),
+        )
+        op.create_index(op.f("ix_bakeries_id"), "bakeries", ["id"], unique=False)
+    else:
+        if not _column_exists("bakeries", "user_id"):
+            with op.batch_alter_table("bakeries") as batch_op:
+                batch_op.add_column(sa.Column("user_id", sa.Integer(), nullable=True))
+                batch_op.create_foreign_key("fk_bakeries_user_id", "users", ["user_id"], ["id"])
+        op.execute("UPDATE bakeries SET user_id = 1 WHERE user_id IS NULL")
 
-    op.execute("UPDATE bakeries SET user_id = 1 WHERE user_id IS NULL")
-
-    # 4. Add user_id column to ratings and backfill
-    if not _column_exists("ratings", "user_id"):
-        with op.batch_alter_table("ratings") as batch_op:
-            batch_op.add_column(sa.Column("user_id", sa.Integer(), nullable=True))
-            batch_op.create_foreign_key("fk_ratings_user_id", "users", ["user_id"], ["id"])
-
-    op.execute("UPDATE ratings SET user_id = 1 WHERE user_id IS NULL")
+    # 4. Create ratings table (fresh DB) or add user_id column (existing DB)
+    if not _table_exists("ratings"):
+        op.create_table(
+            "ratings",
+            sa.Column("id", sa.Integer(), nullable=False),
+            sa.Column("bakery_id", sa.Integer(), sa.ForeignKey("bakeries.id"), nullable=False),
+            sa.Column("score", sa.Float(), nullable=False),
+            sa.Column("notes", sa.Text(), nullable=True),
+            sa.Column("visited_at", sa.Date(), nullable=True),
+            sa.Column("created_at", sa.DateTime(), nullable=True),
+            sa.Column("user_id", sa.Integer(), sa.ForeignKey("users.id"), nullable=True),
+            sa.PrimaryKeyConstraint("id"),
+        )
+        op.create_index(op.f("ix_ratings_id"), "ratings", ["id"], unique=False)
+    else:
+        if not _column_exists("ratings", "user_id"):
+            with op.batch_alter_table("ratings") as batch_op:
+                batch_op.add_column(sa.Column("user_id", sa.Integer(), nullable=True))
+                batch_op.create_foreign_key("fk_ratings_user_id", "users", ["user_id"], ["id"])
+        op.execute("UPDATE ratings SET user_id = 1 WHERE user_id IS NULL")
 
 
 def downgrade() -> None:

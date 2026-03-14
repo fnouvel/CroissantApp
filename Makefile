@@ -1,13 +1,16 @@
 # CroissantApp commands
 # Usage: make <command>
 
+# Resolve npm from Homebrew or PATH
+NPM := $(shell command -v /opt/homebrew/bin/npm 2>/dev/null || command -v npm 2>/dev/null)
+
 # Start both backend and frontend (Ctrl+C to stop)
 start:
 	@echo "Starting backend and frontend..."
 	@echo "Press Ctrl+C to stop both servers.\n"
 	@trap 'kill 0' EXIT; \
 		(cd backend && source venv/bin/activate && uvicorn app.main:app --reload) & \
-		(cd frontend && npm run dev) & \
+		(cd frontend && $(NPM) run dev) & \
 		wait
 
 # Start only the backend
@@ -16,7 +19,7 @@ start-backend:
 
 # Start only the frontend
 start-frontend:
-	cd frontend && npm run dev
+	cd frontend && $(NPM) run dev
 
 # Seed the database with Boston bakeries + test user (backend must be running)
 seed:
@@ -30,7 +33,7 @@ seed-bakeries:
 seed-user:
 	cd backend && source venv/bin/activate && python seed_dev_user.py
 
-# Run all setup steps (same as bash setup.sh)
+# Run all setup steps
 setup:
 	bash setup.sh
 
@@ -45,6 +48,6 @@ migrate:
 # Lint everything
 lint:
 	cd backend && source venv/bin/activate && ruff check .
-	cd frontend && npm run lint
+	cd frontend && $(NPM) run lint
 
 .PHONY: start start-backend start-frontend seed seed-bakeries seed-user setup test migrate lint

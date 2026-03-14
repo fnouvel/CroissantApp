@@ -1,85 +1,110 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # CroissantApp — Croissant Club
 
 A croissant rating journal for friends and family to discover, rate, and track Boston bakeries' croissants together.
 
 ## Tech Stack
-- **Backend**: Python with FastAPI, SQLAlchemy, Alembic (SQLite)
-- **Frontend**: React 19 + Vite + Tailwind CSS 4 + MapLibre GL
-- **Auth**: JWT access tokens + HttpOnly refresh cookies
-- **Architecture**: API-first — the React frontend consumes FastAPI REST endpoints
-
-## Project Structure
-```
-CroissantApp/
-├── backend/
-│   ├── app/
-│   │   ├── main.py
-│   │   ├── database.py
-│   │   ├── dependencies.py      # get_current_user
-│   │   ├── routers/
-│   │   │   ├── auth.py          # login, register, refresh, logout
-│   │   │   ├── bakeries.py      # CRUD + geocoding + aggregates
-│   │   │   └── ratings.py       # category ratings + my-ratings
-│   │   ├── models/models.py     # User, Bakery, Rating (4 categories)
-│   │   └── schemas/schemas.py
-│   ├── alembic/                 # migrations
-│   ├── tests/
-│   ├── requirements.txt
-│   └── .env
-├── frontend/
-│   ├── src/
-│   │   ├── App.jsx              # Tab-based SPA (Home/Explore/Rate/Journal)
-│   │   ├── api.js               # API layer
-│   │   ├── index.css            # Full design system (French Blue Morning Garden)
-│   │   ├── context/
-│   │   │   └── AuthContext.jsx   # Auth state + token management
-│   │   └── components/
-│   │       ├── LoginForm.jsx
-│   │       ├── MapView.jsx      # MapLibre GL via react-map-gl
-│   │       ├── FillBar.jsx      # Animated score bars
-│   │       └── PlaceSearch.jsx  # Nominatim place autocomplete
-│   ├── package.json
-│   └── .env
-├── .planning/                   # GSD workflow state
-├── CLAUDE.md
-└── pre-coding-journal.md
-```
+- **Backend**: Python + FastAPI, SQLAlchemy ORM, Alembic migrations, SQLite
+- **Frontend**: React 19 + Vite + Tailwind CSS 4 + MapLibre GL (via react-map-gl)
+- **Auth**: Short-lived JWT access tokens stored in memory + HttpOnly refresh cookie (30 days)
+- **Map tiles**: OpenFreeMap vector tiles (no API key needed)
+- **Geocoding**: Nominatim/OSM (rate-limited; requires `User-Agent` header)
 
 ## Common Commands
 
-### Backend
+The `Makefile` at the repo root is the primary interface:
+
 ```bash
-cd backend
-source venv/bin/activate
-uvicorn app.main:app --reload   # dev server on :8000
-pytest                          # run tests
-ruff check .                    # lint
-alembic upgrade head            # run migrations
+make start          # run both backend (:8000) and frontend (:5173) concurrently
+make start-backend  # backend only
+make start-frontend # frontend only
+make seed           # populate DB with Boston bakeries + dev user (backend must be running)
+make migrate        # alembic upgrade head
+make test           # pytest (backend)
+make lint           # ruff + eslint
 ```
 
-### Frontend
+Direct equivalents (when inside the right directory):
+
 ```bash
+# Backend
+cd backend && source venv/bin/activate
+uvicorn app.main:app --reload
+pytest -k test_name   # run a single test by name
+alembic upgrade head
+
+# Frontend
 cd frontend
-npm install
-npm run dev          # dev server on :5173
-npm run build        # production build
-npm run lint         # lint
+npm run dev
+npm run lint
+```
+
+## Architecture
+
+**API-first**: React SPA → FastAPI REST → SQLite via SQLAlchemy. The frontend never touches the database directly.
+
+```
+backend/app/
+  main.py            # FastAPI app, CORS, lifespan (creates tables on startup)
+  database.py        # SQLAlchemy engine + get_db() dependency
+  dependencies.py    # get_current_user() — decodes Bearer token, returns User
+  auth.py            # hash_password, verify_password, create/decode JWT tokens
+  routers/
+    auth.py          # POST /api/auth/{register,login,refresh,logout}
+    bakeries.py      # CRUD + Nominatim geocoding on create, avg_score aggregation
+    ratings.py       # POST /api/bakeries/{id}/ratings, GET /api/ratings/me
+  models/models.py   # User, Bakery, Rating (SQLAlchemy)
+  schemas/schemas.py # Pydantic request/response models
+
+frontend/src/
+  main.jsx           # React root
+  App.jsx            # Tab-based SPA shell: Home / Explore / Rate / Journal
+  api.js             # All fetch() calls — every function takes token as first arg
+  index.css          # Design system CSS variables + Tailwind config
+  context/AuthContext.jsx  # Auth state; exposes useAuth() hook; handles token refresh
+  components/
+    LoginForm.jsx
+    MapView.jsx      # MapLibre GL map centered on Boston
+    FillBar.jsx      # Animated score fill bars
+    PlaceSearch.jsx  # Nominatim autocomplete
+```
+
+### Key Patterns
+
+**Auth flow**: `AuthContext` stores the access token in memory. On mount it calls `POST /api/auth/refresh` (sends HttpOnly cookie automatically) to restore session. All `api.js` functions receive `token` as their first argument — `App.jsx` passes it down from context. When `DEBUG=true` in backend `.env`, the refresh cookie is set with `secure=False` to allow HTTP in dev.
+
+**Rating model**: `Rating` has four integer columns (`flakiness`, `butteriness`, `freshness`, `size_value`, each 1–5) plus a computed `score` float (their average, calculated in the router before insert, not stored in DB).
+
+**avg_score on Bakery**: Routers compute `avg_score` via SQL aggregate at query time and inject it into `BakeryOut` — it is not a stored column.
+
+**Geocoding**: `geocode_address()` in `bakeries.py` is a silent-fail async wrapper — if Nominatim fails, bakery is still created with `latitude=None, longitude=None`.
+
+**CORS**: Configured in `main.py` for `localhost:5173` and `localhost:5174` (Vite dev port variants).
+
+## Environment Variables
+
+```bash
+# backend/.env
+SECRET_KEY=...
+DEBUG=true          # set secure=False on refresh cookie; flip to false in production
+
+# frontend/.env
+VITE_API_URL=http://localhost:8000/api
 ```
 
 ## Design System
-- **Fonts**: Fraunces (serif headings) + DM Sans (body)
-- **Colors**: French Blue Morning Garden — #F9F5EE (linen bg), #FFFFFF (white card surfaces), #4A6FA5 (French blue primary), #2E4A7A (blue-deep), #E2C68A (butter accent), #C2785A (terracotta CTA), #1E2D3D (iron text)
-- **Layout**: Desktop sidebar + mobile bottom tab bar, 4 views
-- **Rating**: 🥐 emoji buttons for flakiness, butteriness, freshness, size/value (1-5 each)
+
+- **Fonts**: Fraunces (serif headings) + DM Sans (body) — loaded via CSS `@import`
+- **Colors**: French Blue Morning Garden — `#F9F5EE` linen bg, `#4A6FA5` French blue primary, `#E2C68A` butter accent, `#C2785A` terracotta CTA, `#1E2D3D` iron text
+- **Layout**: Desktop sidebar + mobile bottom tab bar; 4 tab views
+- Defined entirely in `frontend/src/index.css` as CSS custom properties
 
 ## Current Status
 - **Phase 1** (Auth): Complete — JWT auth, Alembic migrations, login/register
-- **Phase 2** (Ratings & UI): Complete — category ratings, tab-based SPA redesign
-- **Phase 3** (Photos): Not started
+- **Phase 2** (Ratings & UI): Complete — category ratings, MapLibre map, tab-based SPA
+- **Phase 3** (Photos): Not started — deployment target (VPS vs. cloud) must be confirmed before implementing file storage
 - **Phase 4** (Map Polish): Not started
-- See `.planning/STATE.md` for detailed GSD progress
-
-## Notes
-- Map uses OpenFreeMap vector tiles (no API key needed)
-- Geocoding via Nominatim (rate-limited, User-Agent required)
-- Work iteratively: small changes, test often, commit frequently
+- See `.planning/STATE.md` for detailed GSD progress and decision log
