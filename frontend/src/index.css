@@ -788,6 +788,169 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════
+   EXPLORE LAYOUT — hero map + bakery list
+   ═══════════════════════════════════════════════════ */
+
+.explore-layout {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.explore-map-hero {
+  flex-shrink: 0;
+  height: 42vh;
+  min-height: 220px;
+  position: relative;
+}
+
+.explore-list-panel {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--bg);
+  padding-bottom: calc(var(--tabbar-h) + 8px);
+  display: flex;
+  flex-direction: column;
+}
+
+.explore-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.explore-list-header h2 {
+  font-family: 'Fraunces', serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.bakery-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.bakery-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border-subtle);
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.12s ease, border-left-color 0.12s ease;
+}
+
+.bakery-row:hover,
+.bakery-row.hovered {
+  background: var(--cream);
+}
+
+.bakery-row.selected {
+  background: var(--blue-wash);
+  border-left-color: var(--blue-mid);
+}
+
+.bakery-row-rank {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--blue-mid);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bakery-row-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border-subtle);
+  margin: 0 7px;
+}
+
+.bakery-row-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bakery-row-name {
+  font-family: 'Fraunces', serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bakery-row-address {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bakery-row-score {
+  flex-shrink: 0;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-family: 'Fraunces', serif;
+}
+
+.bakery-row-unrated {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+@media (min-width: 1024px) {
+  .explore-layout {
+    flex-direction: row;
+  }
+  .explore-map-hero {
+    flex: 0 0 55%;
+    height: auto;
+    align-self: stretch;
+  }
+  .explore-list-panel {
+    flex: 0 0 45%;
+    padding-bottom: 24px;
+    border-left: 1px solid var(--border-subtle);
+  }
+}
+
+/* ═══════════════════════════════════════════════════
    FORM / RATE VIEW
    ═══════════════════════════════════════════════════ */
 

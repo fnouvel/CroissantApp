@@ -3,6 +3,7 @@ import { fetchBakeries, fetchBakery, fetchMyRatings, createRating, createBakery 
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import LoginForm from "./components/LoginForm";
 import MapView from "./components/MapView";
+import BakeryList from "./components/BakeryList";
 import PlaceSearch from "./components/PlaceSearch";
 import FillBar from "./components/FillBar";
 
@@ -211,6 +212,9 @@ function MapTab({ bakeries, token }) {
   const [selectedBakery, setSelectedBakery] = useState(null);
   const [bakeryDetail, setBakeryDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [hoveredBakeryId, setHoveredBakeryId] = useState(null);
+  const mapViewRef = useRef(null);
+  const listRef = useRef(null);
 
   const handleBakeryClick = useCallback(async (bakery) => {
     if (!bakery) {
@@ -221,9 +225,9 @@ function MapTab({ bakeries, token }) {
     setSelectedBakery(bakery);
     setBakeryDetail(null);
     setDetailLoading(true);
+    listRef.current?.scrollToBakery(bakery);
     try {
-      const detail = await fetchBakery(token, bakery.id);
-      setBakeryDetail(detail);
+      setBakeryDetail(await fetchBakery(token, bakery.id));
     } catch (err) {
       console.error("Failed to fetch bakery detail:", err);
     } finally {
@@ -231,18 +235,36 @@ function MapTab({ bakeries, token }) {
     }
   }, [token]);
 
+  const handleListClick = useCallback((bakery) => {
+    handleBakeryClick(bakery);
+    mapViewRef.current?.flyToBakery(bakery);
+  }, [handleBakeryClick]);
+
+  const handleHover = useCallback((b) => setHoveredBakeryId(b.id), []);
+  const handleLeave = useCallback(() => setHoveredBakeryId(null), [])
+
   return (
     <section className="view active">
-      <div className="map-topbar glass">
-        <h2>Explore Bakeries</h2>
-      </div>
-      <div style={{ flex: 1, minHeight: 0 }}>
-        <MapView
+      <div className="explore-layout">
+        <div className="explore-map-hero">
+          <MapView
+            ref={mapViewRef}
+            bakeries={bakeries}
+            onBakeryClick={handleBakeryClick}
+            selectedBakery={selectedBakery}
+            bakeryDetail={bakeryDetail}
+            detailLoading={detailLoading}
+            highlightedBakeryId={hoveredBakeryId}
+          />
+        </div>
+        <BakeryList
+          ref={listRef}
           bakeries={bakeries}
-          onBakeryClick={handleBakeryClick}
           selectedBakery={selectedBakery}
-          bakeryDetail={bakeryDetail}
-          detailLoading={detailLoading}
+          highlightedBakeryId={hoveredBakeryId}
+          onHover={handleHover}
+          onLeave={handleLeave}
+          onClick={handleListClick}
         />
       </div>
     </section>

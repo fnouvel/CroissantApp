@@ -1,11 +1,11 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useImperativeHandle, useMemo } from "react";
 import Map, { Marker, Popup, NavigationControl } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import FillBar from "./FillBar";
 
 const BOSTON_CENTER = { longitude: -71.06, latitude: 42.36 };
 
-function BakeryMarker({ bakery, onHover, onLeave, onClick }) {
+function BakeryMarker({ bakery, onHover, onLeave, onClick, isHighlighted }) {
   const score = bakery.avg_score;
   const hasScore = score != null && score > 0;
 
@@ -36,10 +36,13 @@ function BakeryMarker({ bakery, onHover, onLeave, onClick }) {
             color: "#fff",
             fontSize: 12,
             fontWeight: 700,
-            boxShadow: "0 2px 8px rgba(0,0,0,.25)",
+            boxShadow: isHighlighted
+              ? "0 0 0 3px var(--butter), 0 2px 8px rgba(0,0,0,.25)"
+              : "0 2px 8px rgba(0,0,0,.25)",
             border: "2px solid rgba(255,255,255,.8)",
             background: hasScore ? "var(--accent)" : "var(--text-muted)",
-            transition: "transform 0.15s ease",
+            transform: isHighlighted ? "scale(1.18)" : undefined,
+            transition: "transform 0.15s ease, box-shadow 0.15s ease",
           }}
         >
           {hasScore ? score.toFixed(1) : "🥐"}
@@ -169,10 +172,24 @@ function HoverTooltip({ bakery }) {
   );
 }
 
-export default function MapView({ bakeries, onBakeryClick, selectedBakery, bakeryDetail, detailLoading }) {
+export default function MapView({ ref, bakeries, onBakeryClick, selectedBakery, bakeryDetail, detailLoading, highlightedBakeryId }) {
   const mapRef = useRef(null);
   const [hoveredBakery, setHoveredBakery] = useState(null);
-  const mappable = bakeries.filter((b) => b.latitude && b.longitude);
+  const mappable = useMemo(
+    () => bakeries.filter((b) => b.latitude != null && b.longitude != null),
+    [bakeries]
+  );
+
+  useImperativeHandle(ref, () => ({
+    flyToBakery(bakery) {
+      if (!mapRef.current || bakery?.latitude == null) return;
+      mapRef.current.flyTo({
+        center: [bakery.longitude, bakery.latitude],
+        zoom: 14,
+        duration: 600,
+      });
+    },
+  }), []);
 
   const handleHover = useCallback((bakery) => {
     setHoveredBakery(bakery);
@@ -212,6 +229,7 @@ export default function MapView({ bakeries, onBakeryClick, selectedBakery, baker
           onHover={handleHover}
           onLeave={handleLeave}
           onClick={handleClick}
+          isHighlighted={b.id === highlightedBakeryId}
         />
       ))}
 
@@ -221,7 +239,7 @@ export default function MapView({ bakeries, onBakeryClick, selectedBakery, baker
       )}
 
       {/* Click popup — full bakery profile */}
-      {selectedBakery && (
+      {selectedBakery && selectedBakery.latitude != null && (
         <BakeryPopup
           bakery={selectedBakery}
           detail={bakeryDetail}
