@@ -76,7 +76,9 @@ frontend/src/
 
 **Auth flow**: `AuthContext` stores the access token in memory. On mount it calls `POST /api/auth/refresh` (sends HttpOnly cookie automatically) to restore session. All `api.js` functions receive `token` as their first argument — `App.jsx` passes it down from context. When `DEBUG=true` in backend `.env`, the refresh cookie is set with `secure=False` to allow HTTP in dev.
 
-**Rating model**: `Rating` has four integer columns (`flakiness`, `butteriness`, `freshness`, `size_value`, each 1–5) plus a computed `score` float (their average, calculated in the router before insert, not stored in DB).
+**Rating model**: `Rating` has four integer columns (`flakiness`, `butteriness`, `freshness`, `size_value`, each 1–5) plus a computed `score` float (their average, calculated in the router before insert, not stored in DB). Ratings also have an optional `photo_url` (local file path served via `/uploads/`).
+
+**Photo uploads**: The `POST /api/bakeries/{id}/ratings` endpoint accepts `multipart/form-data` (not JSON) with an optional `photo` file field (JPEG/PNG/WebP, max 5 MB). Files are saved to `backend/uploads/` and served via FastAPI `StaticFiles` at `/uploads/`. The `api.js` `createRating` function uses `FormData`.
 
 **avg_score on Bakery**: Routers compute `avg_score` via SQL aggregate at query time and inject it into `BakeryOut` — it is not a stored column.
 
@@ -105,6 +107,6 @@ VITE_API_URL=http://localhost:8000/api
 ## Current Status
 - **Phase 1** (Auth): Complete — JWT auth, Alembic migrations, login/register
 - **Phase 2** (Ratings & UI): Complete — category ratings, MapLibre map, tab-based SPA
-- **Phase 3** (Photos): Not started — deployment target (VPS vs. cloud) must be confirmed before implementing file storage
+- **Phase 3** (Photos): Complete — multipart photo upload, local file storage, display in Journal and bakery detail
 - **Phase 4** (Map Polish): Not started
 - See `.planning/STATE.md` for detailed GSD progress and decision log
