@@ -11,9 +11,18 @@ function sortBakeries(bakeries) {
   return [...rated, ...unrated];
 }
 
+const API_BASE = import.meta.env.VITE_API_URL.replace("/api", "");
+
 function RatingCard({ rating }) {
   return (
     <div className="bakery-rating-card">
+      {rating.photo_url && (
+        <img
+          className="bakery-rating-card-photo"
+          src={`${API_BASE}${rating.photo_url}`}
+          alt="Croissant"
+        />
+      )}
       <div className="bakery-rating-card-header">
         <span className="bakery-rating-card-score">
           {rating.overall_score.toFixed(1)}

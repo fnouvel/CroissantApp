@@ -1,20 +1,34 @@
+import os
+import uuid
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies import get_current_user
 from app.models.models import Bakery, Rating, User
-from app.schemas.schemas import RatingCreate, RatingOut, RatingWithBakery
+from app.schemas.schemas import RatingOut, RatingWithBakery
 
 router = APIRouter(prefix="/api", tags=["ratings"])
 
+UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
+
 
 @router.post("/bakeries/{bakery_id}/ratings", response_model=RatingOut, status_code=201)
-def create_rating(
+async def create_rating(
     bakery_id: int,
-    data: RatingCreate,
+    flakiness: int = Form(...),
+    butteriness: int = Form(...),
+    freshness: int = Form(...),
+    size_value: int = Form(...),
+    notes: str | None = Form(None),
+    visited_at: date | None = Form(None),
+    photo: UploadFile | None = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -22,17 +36,37 @@ def create_rating(
     if not bakery:
         raise HTTPException(status_code=404, detail="Bakery not found")
 
-    overall = (data.flakiness + data.butteriness + data.freshness + data.size_value) / 4.0
+    for field_name, val in [("flakiness", flakiness), ("butteriness", butteriness),
+                            ("freshness", freshness), ("size_value", size_value)]:
+        if not 1 <= val <= 5:
+            raise HTTPException(status_code=422, detail=f"{field_name} must be between 1 and 5")
+
+    photo_url = None
+    if photo and photo.filename:
+        if photo.content_type not in ALLOWED_TYPES:
+            raise HTTPException(status_code=400, detail="Only JPEG, PNG, and WebP images are allowed")
+        contents = await photo.read()
+        if len(contents) > MAX_FILE_SIZE:
+            raise HTTPException(status_code=400, detail="Image must be under 5 MB")
+        ext = photo.filename.rsplit(".", 1)[-1].lower() if "." in photo.filename else "jpg"
+        filename = f"{uuid.uuid4().hex}.{ext}"
+        filepath = os.path.join(UPLOAD_DIR, filename)
+        with open(filepath, "wb") as f:
+            f.write(contents)
+        photo_url = f"/uploads/{filename}"
+
+    overall = (flakiness + butteriness + freshness + size_value) / 4.0
 
     rating = Rating(
         bakery_id=bakery_id,
-        flakiness=data.flakiness,
-        butteriness=data.butteriness,
-        freshness=data.freshness,
-        size_value=data.size_value,
+        flakiness=flakiness,
+        butteriness=butteriness,
+        freshness=freshness,
+        size_value=size_value,
         score=overall,
-        notes=data.notes,
-        visited_at=data.visited_at or date.today(),
+        notes=notes,
+        photo_url=photo_url,
+        visited_at=visited_at or date.today(),
         user_id=current_user.id,
     )
     db.add(rating)
@@ -48,6 +82,7 @@ def create_rating(
         size_value=rating.size_value,
         overall_score=rating.score,
         notes=rating.notes,
+        photo_url=rating.photo_url,
         visited_at=rating.visited_at,
         created_at=rating.created_at,
         username=current_user.username,
@@ -78,6 +113,7 @@ def my_ratings(
                 size_value=r.size_value,
                 overall_score=r.score,
                 notes=r.notes,
+                photo_url=r.photo_url,
                 visited_at=r.visited_at,
                 created_at=r.created_at,
                 username=current_user.username,

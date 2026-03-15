@@ -32,5 +32,8 @@ htmlcov/
 # Database
 *.db
 
+# Uploaded files
+backend/uploads/
+
 # Build artifacts
 *.log

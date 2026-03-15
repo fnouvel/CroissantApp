@@ -41,6 +41,7 @@ class Rating(Base):
     size_value = Column(Integer, nullable=False)
     score = Column(Float, nullable=False)
     notes = Column(Text, nullable=True)
+    photo_url = Column(String, nullable=True)
     visited_at = Column(Date, default=date.today)
     created_at = Column(DateTime, default=datetime.utcnow)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)

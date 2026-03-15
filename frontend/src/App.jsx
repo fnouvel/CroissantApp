@@ -69,20 +69,15 @@ function CroissantRating({ value, onChange, label }) {
 /* ═══════════════════════════════════════════════════
    HOME VIEW
    ═══════════════════════════════════════════════════ */
-function HomeView({ bakeries, ratings, onNavigate }) {
+function HomeView({ bakeries, ratings, onNavigate, onBakerySelect }) {
   const ratedCount = ratings.length;
   const bakeryCount = bakeries.length;
   const avgScore = ratings.length > 0
     ? (ratings.reduce((sum, r) => sum + r.overall_score, 0) / ratings.length).toFixed(1)
     : "—";
 
-  // Best bakery = highest avg_score
-  const bestBakery = bakeries
-    .filter((b) => b.avg_score != null)
-    .sort((a, b) => b.avg_score - a.avg_score)[0];
-
   // Top rated = ratings sorted by score desc
-  const topRated = [...ratings].sort((a, b) => b.overall_score - a.overall_score).slice(0, 8);
+  const topRated = [...ratings].sort((a, b) => b.overall_score - a.overall_score).slice(0, 3);
 
   // Recent = last 5 ratings
   const recent = [...ratings].slice(0, 5);
@@ -123,10 +118,6 @@ function HomeView({ bakeries, ratings, onNavigate }) {
               <span className="stat-value">{avgScore}</span>
               <span className="stat-label">Avg Score</span>
             </div>
-            <div className="stat-card">
-              <span className="stat-value">{bestBakery ? bestBakery.avg_score.toFixed(1) : "—"}</span>
-              <span className="stat-label">{bestBakery ? bestBakery.name : "Best Bakery"}</span>
-            </div>
           </div>
 
           {/* Top Rated */}
@@ -137,9 +128,12 @@ function HomeView({ bakeries, ratings, onNavigate }) {
             </div>
             {topRated.length > 0 ? (
               <div className="scroll-row">
-                {topRated.map((r) => (
+                {topRated.map((r, i) => (
                   <button key={r.id} className="top-card" onClick={() => onNavigate("journal")}>
-                    <div className="top-card-placeholder">🥐</div>
+                    <div className="top-card-placeholder">
+                      <span className="top-card-rank">{["1st", "2nd", "3rd"][i]}</span>
+                      🥐
+                    </div>
                     <div className="top-card-body">
                       <h4>{r.bakery_name || `Bakery #${r.bakery_id}`}</h4>
                       <div className="top-card-meta">{r.visited_at || r.created_at?.slice(0, 10)}</div>
@@ -161,8 +155,8 @@ function HomeView({ bakeries, ratings, onNavigate }) {
             </div>
             {bakeries.length > 0 ? (
               <div className="scroll-row">
-                {bakeries.map((b) => (
-                  <button key={b.id} className="bakery-card" onClick={() => onNavigate("map")}>
+                {[...bakeries].sort((a, b) => a.name.localeCompare(b.name)).map((b) => (
+                  <button key={b.id} className="bakery-card" onClick={() => onBakerySelect(b)}>
                     <span className="bakery-card-icon">🏪</span>
                     <h4>{b.name}</h4>
                     <p>{b.address}</p>
@@ -208,7 +202,7 @@ function HomeView({ bakeries, ratings, onNavigate }) {
 /* ═══════════════════════════════════════════════════
    MAP VIEW (Explore)
    ═══════════════════════════════════════════════════ */
-function MapTab({ bakeries, token, onBakeryDeleted }) {
+function MapTab({ bakeries, token, onBakeryDeleted, focusBakeryId, onFocusHandled }) {
   const [selectedBakery, setSelectedBakery] = useState(null);
   const [bakeryDetail, setBakeryDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -252,7 +246,18 @@ function MapTab({ bakeries, token, onBakeryDeleted }) {
   }, [handleBakeryClick]);
 
   const handleHover = useCallback((b) => setHoveredBakeryId(b.id), []);
-  const handleLeave = useCallback(() => setHoveredBakeryId(null), [])
+  const handleLeave = useCallback(() => setHoveredBakeryId(null), []);
+
+  useEffect(() => {
+    if (!focusBakeryId || bakeries.length === 0) return;
+    const bakery = bakeries.find((b) => b.id === focusBakeryId);
+    if (!bakery) return;
+    const timer = setTimeout(() => {
+      handleListClick(bakery);
+      onFocusHandled();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [focusBakeryId, bakeries, handleListClick, onFocusHandled]);
 
   return (
     <section className="view active">
@@ -293,9 +298,12 @@ function RateView({ bakeries, token, onRated, onAddBakery, onNavigate }) {
   const [scores, setScores] = useState({ flakiness: 0, butteriness: 0, freshness: 0, size_value: 0 });
   const [notes, setNotes] = useState("");
   const [visitedAt, setVisitedAt] = useState(new Date().toISOString().slice(0, 10));
+  const [photo, setPhoto] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [showAddBakery, setShowAddBakery] = useState(false);
+  const fileInputRef = useRef(null);
 
   const allRated = Object.values(scores).every((v) => v > 0);
   const avg = allRated ? (Object.values(scores).reduce((a, b) => a + b, 0) / 4).toFixed(1) : null;
@@ -306,12 +314,14 @@ function RateView({ bakeries, token, onRated, onAddBakery, onNavigate }) {
     setSubmitting(true);
     setError(null);
     try {
-      await createRating(token, bakeryId, { ...scores, notes: notes || null, visited_at: visitedAt });
+      await createRating(token, bakeryId, { ...scores, notes: notes || null, visited_at: visitedAt, photo });
       // Reset
       setBakeryId("");
       setScores({ flakiness: 0, butteriness: 0, freshness: 0, size_value: 0 });
       setNotes("");
       setVisitedAt(new Date().toISOString().slice(0, 10));
+      setPhoto(null);
+      setPhotoPreview(null);
       onRated();
       setTimeout(() => onNavigate("journal"), 600);
     } catch (err) {
@@ -339,7 +349,7 @@ function RateView({ bakeries, token, onRated, onAddBakery, onNavigate }) {
                 <div className="select-wrap">
                   <select value={bakeryId} onChange={(e) => setBakeryId(e.target.value)} required>
                     <option value="">Pick a bakery...</option>
-                    {bakeries.map((b) => (
+                    {[...bakeries].sort((a, b) => a.name.localeCompare(b.name)).map((b) => (
                       <option key={b.id} value={b.id}>{b.name}</option>
                     ))}
                   </select>
@@ -364,7 +374,7 @@ function RateView({ bakeries, token, onRated, onAddBakery, onNavigate }) {
               <CroissantRating label="📏 Size & Value" value={scores.size_value} onChange={(v) => setScores((p) => ({ ...p, size_value: v }))} />
             </fieldset>
 
-            {/* Notes & Date */}
+            {/* Notes, Photo & Date */}
             <fieldset className="card">
               <legend className="card-legend">Details</legend>
               <div className="field">
@@ -375,6 +385,51 @@ function RateView({ bakeries, token, onRated, onAddBakery, onNavigate }) {
                   placeholder="Flaky layers, rich butter aroma, perfectly golden..."
                   rows={3}
                 />
+              </div>
+              <div className="field">
+                <label>Photo</label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setPhoto(file);
+                    setPhotoPreview(URL.createObjectURL(file));
+                  }}
+                />
+                {photoPreview ? (
+                  <div className="photo-preview">
+                    <img src={photoPreview} alt="Croissant preview" />
+                    <button
+                      type="button"
+                      className="photo-preview-remove"
+                      onClick={() => {
+                        setPhoto(null);
+                        setPhotoPreview(null);
+                        if (fileInputRef.current) fileInputRef.current.value = "";
+                      }}
+                      aria-label="Remove photo"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="photo-upload-btn"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                      <circle cx="8.5" cy="8.5" r="1.5" />
+                      <polyline points="21 15 16 10 5 21" />
+                    </svg>
+                    Add a photo
+                  </button>
+                )}
               </div>
               <div className="field">
                 <label>Date Visited</label>
@@ -501,6 +556,13 @@ function JournalView({ ratings }) {
             <div className="history-grid">
               {ratings.map((r, i) => (
                 <div key={r.id} className="rating-card" style={{ animationDelay: `${i * 0.05}s` }}>
+                  {r.photo_url && (
+                    <img
+                      className="rating-card-photo"
+                      src={`${import.meta.env.VITE_API_URL.replace('/api', '')}${r.photo_url}`}
+                      alt={`${r.bakery_name || "Bakery"} croissant`}
+                    />
+                  )}
                   <div className="rating-card-body">
                     <div className="rating-card-top">
                       <h3>{r.bakery_name || `Bakery #${r.bakery_id}`}</h3>
@@ -537,6 +599,7 @@ function MainApp() {
   const [bakeries, setBakeries] = useState([]);
   const [ratings, setRatings] = useState([]);
   const [toast, setToast] = useState("");
+  const [focusBakeryId, setFocusBakeryId] = useState(null);
 
   const loadBakeries = useCallback(async () => {
     if (!accessToken) return;
@@ -641,8 +704,23 @@ function MainApp() {
 
       {/* Main content */}
       <main className="main-content">
-        {activeTab === "home" && <HomeView bakeries={bakeries} ratings={ratings} onNavigate={setActiveTab} />}
-        {activeTab === "map" && <MapTab bakeries={bakeries} token={accessToken} onBakeryDeleted={handleBakeryDeleted} />}
+        {activeTab === "home" && (
+          <HomeView
+            bakeries={bakeries}
+            ratings={ratings}
+            onNavigate={setActiveTab}
+            onBakerySelect={(b) => { setFocusBakeryId(b.id); setActiveTab("map"); }}
+          />
+        )}
+        {activeTab === "map" && (
+          <MapTab
+            bakeries={bakeries}
+            token={accessToken}
+            onBakeryDeleted={handleBakeryDeleted}
+            focusBakeryId={focusBakeryId}
+            onFocusHandled={() => setFocusBakeryId(null)}
+          />
+        )}
         {activeTab === "rate" && (
           <RateView bakeries={bakeries} token={accessToken} onRated={handleRated} onAddBakery={handleBakeryAdded} onNavigate={setActiveTab} />
         )}

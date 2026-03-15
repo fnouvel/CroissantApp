@@ -19,15 +19,21 @@ def _create_bakery(client, headers):
     return res.json()["id"]
 
 
+def _post_rating(client, bakery_id, headers, **scores):
+    """Post a rating using form data."""
+    return client.post(
+        f"/api/bakeries/{bakery_id}/ratings",
+        data=scores,
+        headers=headers,
+    )
+
+
 def test_create_rating_with_categories(client):
     headers = _auth_header(client)
     bakery_id = _create_bakery(client, headers)
 
-    res = client.post(
-        f"/api/bakeries/{bakery_id}/ratings",
-        json={"flakiness": 5, "butteriness": 4, "freshness": 3, "size_value": 2},
-        headers=headers,
-    )
+    res = _post_rating(client, bakery_id, headers,
+                       flakiness=5, butteriness=4, freshness=3, size_value=2)
     assert res.status_code == 201
     data = res.json()
     assert data["flakiness"] == 5
@@ -36,6 +42,7 @@ def test_create_rating_with_categories(client):
     assert data["size_value"] == 2
     assert data["overall_score"] == 3.5
     assert data["username"] == "sam"
+    assert data["photo_url"] is None
 
 
 def test_create_rating_validation(client):
@@ -43,11 +50,8 @@ def test_create_rating_validation(client):
     bakery_id = _create_bakery(client, headers)
 
     # Score out of range
-    res = client.post(
-        f"/api/bakeries/{bakery_id}/ratings",
-        json={"flakiness": 6, "butteriness": 4, "freshness": 3, "size_value": 2},
-        headers=headers,
-    )
+    res = _post_rating(client, bakery_id, headers,
+                       flakiness=6, butteriness=4, freshness=3, size_value=2)
     assert res.status_code == 422
 
 
@@ -55,12 +59,8 @@ def test_my_ratings(client):
     headers = _auth_header(client)
     bakery_id = _create_bakery(client, headers)
 
-    # Create a rating
-    client.post(
-        f"/api/bakeries/{bakery_id}/ratings",
-        json={"flakiness": 5, "butteriness": 4, "freshness": 3, "size_value": 2},
-        headers=headers,
-    )
+    _post_rating(client, bakery_id, headers,
+                 flakiness=5, butteriness=4, freshness=3, size_value=2)
 
     res = client.get("/api/ratings/me", headers=headers)
     assert res.status_code == 200
@@ -74,17 +74,10 @@ def test_bakery_detail_with_aggregate(client):
     headers = _auth_header(client)
     bakery_id = _create_bakery(client, headers)
 
-    # Create two ratings
-    client.post(
-        f"/api/bakeries/{bakery_id}/ratings",
-        json={"flakiness": 4, "butteriness": 4, "freshness": 4, "size_value": 4},
-        headers=headers,
-    )
-    client.post(
-        f"/api/bakeries/{bakery_id}/ratings",
-        json={"flakiness": 2, "butteriness": 2, "freshness": 2, "size_value": 2},
-        headers=headers,
-    )
+    _post_rating(client, bakery_id, headers,
+                 flakiness=4, butteriness=4, freshness=4, size_value=4)
+    _post_rating(client, bakery_id, headers,
+                 flakiness=2, butteriness=2, freshness=2, size_value=2)
 
     res = client.get(f"/api/bakeries/{bakery_id}", headers=headers)
     assert res.status_code == 200
@@ -99,14 +92,32 @@ def test_bakery_list_avg_score(client):
     headers = _auth_header(client)
     bakery_id = _create_bakery(client, headers)
 
-    client.post(
-        f"/api/bakeries/{bakery_id}/ratings",
-        json={"flakiness": 5, "butteriness": 5, "freshness": 5, "size_value": 5},
-        headers=headers,
-    )
+    _post_rating(client, bakery_id, headers,
+                 flakiness=5, butteriness=5, freshness=5, size_value=5)
 
     res = client.get("/api/bakeries", headers=headers)
     assert res.status_code == 200
     data = res.json()
     assert len(data) == 1
     assert data[0]["avg_score"] == 5.0
+
+
+def test_create_rating_with_photo(client, tmp_path):
+    headers = _auth_header(client)
+    bakery_id = _create_bakery(client, headers)
+
+    # Create a small test image file
+    img = tmp_path / "test.jpg"
+    img.write_bytes(b"\xff\xd8\xff\xe0" + b"\x00" * 100)
+
+    with open(img, "rb") as f:
+        res = client.post(
+            f"/api/bakeries/{bakery_id}/ratings",
+            data={"flakiness": 5, "butteriness": 4, "freshness": 3, "size_value": 2},
+            files={"photo": ("test.jpg", f, "image/jpeg")},
+            headers=headers,
+        )
+    assert res.status_code == 201
+    data = res.json()
+    assert data["photo_url"] is not None
+    assert data["photo_url"].startswith("/uploads/")

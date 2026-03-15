@@ -34,6 +34,7 @@ class RatingOut(BaseModel):
     size_value: int
     overall_score: float
     notes: str | None
+    photo_url: str | None = None
     visited_at: date
     created_at: datetime
     username: str | None = None

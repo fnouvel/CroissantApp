@@ -45,15 +45,21 @@ export async function deleteBakery(token, id) {
   if (!res.ok) throw new Error("Failed to delete bakery");
 }
 
-export async function createRating(token, bakeryId, { flakiness, butteriness, freshness, size_value, notes, visited_at }) {
+export async function createRating(token, bakeryId, { flakiness, butteriness, freshness, size_value, notes, visited_at, photo }) {
+  const form = new FormData();
+  form.append("flakiness", flakiness);
+  form.append("butteriness", butteriness);
+  form.append("freshness", freshness);
+  form.append("size_value", size_value);
+  if (notes) form.append("notes", notes);
+  if (visited_at) form.append("visited_at", visited_at);
+  if (photo) form.append("photo", photo);
+
   const res = await fetch(`${API}/bakeries/${bakeryId}/ratings`, {
     method: "POST",
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + token,
-    },
-    body: JSON.stringify({ flakiness, butteriness, freshness, size_value, notes, visited_at }),
+    headers: { Authorization: "Bearer " + token },
+    body: form,
   });
   if (res.status === 401) throw new Error("Unauthorized");
   if (!res.ok) throw new Error("Failed to create rating");
