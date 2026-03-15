@@ -22,7 +22,7 @@ def main():
     # Verify login works
     r = requests.post(f"{BASE}/login", json={"username": USERNAME, "password": PASSWORD})
     if r.status_code == 200:
-        print(f"Login verified OK")
+        print("Login verified OK")
         print(f"\n  Username: {USERNAME}")
         print(f"  Password: {PASSWORD}")
     else:

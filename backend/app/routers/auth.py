@@ -65,7 +65,7 @@ def refresh(
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
-    user = db.query(User).filter(User.id == user_id, User.is_active == True).first()
+    user = db.query(User).filter(User.id == user_id, User.is_active.is_(True)).first()
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
 

@@ -1,4 +1,4 @@
-"""Seed 15 real Boston-area bakeries into the database.
+"""Seed 18 real Boston-area bakeries into the database.
 
 Clears all existing bakeries (and their ratings via cascade) first,
 then inserts fresh data with hardcoded coordinates.
@@ -33,6 +33,9 @@ BAKERIES = [
     {"name": "Pâtisserie Boréale", "address": "145 Huron Ave, Cambridge, MA", "latitude": 42.3810, "longitude": -71.1350},
     {"name": "Sofra Bakery & Cafe", "address": "1 Belmont St, Cambridge, MA", "latitude": 42.3770, "longitude": -71.1450},
     {"name": "Boulangerie", "address": "5 Westland Ave, Boston, MA", "latitude": 42.3440, "longitude": -71.0870},
+    {"name": "Colette Bakery (South End)", "address": "517 Columbus Ave, Boston, MA", "latitude": 42.3410, "longitude": -71.0810},
+    {"name": "Colette Bakery (Medford)", "address": "509 Main St, Medford, MA", "latitude": 42.4185, "longitude": -71.1080},
+    {"name": "Colette Bakery (Melrose)", "address": "465 Main St, Melrose, MA", "latitude": 42.4590, "longitude": -71.0600},
 ]
 
 
@@ -45,7 +48,7 @@ def main():
         db.commit()
         print(f"Deleted {bakery_count} bakeries and {rating_count} ratings")
 
-        # Insert 15 bakeries
+        # Insert 18 bakeries
         for data in BAKERIES:
             db.add(Bakery(**data, user_id=None))
         db.commit()

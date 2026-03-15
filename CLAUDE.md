@@ -98,7 +98,7 @@ VITE_API_URL=http://localhost:8000/api
 ## Design System
 
 - **Fonts**: Fraunces (serif headings) + DM Sans (body) — loaded via CSS `@import`
-- **Colors**: French Blue Morning Garden — `#F9F5EE` linen bg, `#4A6FA5` French blue primary, `#E2C68A` butter accent, `#C2785A` terracotta CTA, `#1E2D3D` iron text
+- **Colors**: Terracotta Morning Garden — `#F9F5EE` linen bg, `#C2785A` terracotta primary, `#A8624A` terra-deep hover, `#E2C68A` butter accent, `#1E2D3D` iron text
 - **Layout**: Desktop sidebar + mobile bottom tab bar; 4 tab views
 - Defined entirely in `frontend/src/index.css` as CSS custom properties
 

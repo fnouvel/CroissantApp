@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { fetchBakeries, fetchBakery, fetchMyRatings, createRating, createBakery } from "./api";
+import { fetchBakeries, fetchBakery, fetchMyRatings, createRating, createBakery, deleteBakery } from "./api";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import LoginForm from "./components/LoginForm";
 import MapView from "./components/MapView";
@@ -208,7 +208,7 @@ function HomeView({ bakeries, ratings, onNavigate }) {
 /* ═══════════════════════════════════════════════════
    MAP VIEW (Explore)
    ═══════════════════════════════════════════════════ */
-function MapTab({ bakeries, token }) {
+function MapTab({ bakeries, token, onBakeryDeleted }) {
   const [selectedBakery, setSelectedBakery] = useState(null);
   const [bakeryDetail, setBakeryDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -235,6 +235,17 @@ function MapTab({ bakeries, token }) {
     }
   }, [token]);
 
+  const handleDelete = useCallback(async (bakery) => {
+    try {
+      await deleteBakery(token, bakery.id);
+      setSelectedBakery(null);
+      setBakeryDetail(null);
+      onBakeryDeleted();
+    } catch (err) {
+      console.error("Failed to delete bakery:", err);
+    }
+  }, [token, onBakeryDeleted]);
+
   const handleListClick = useCallback((bakery) => {
     handleBakeryClick(bakery);
     mapViewRef.current?.flyToBakery(bakery);
@@ -251,6 +262,7 @@ function MapTab({ bakeries, token }) {
             ref={mapViewRef}
             bakeries={bakeries}
             onBakeryClick={handleBakeryClick}
+            onDeleteBakery={handleDelete}
             selectedBakery={selectedBakery}
             bakeryDetail={bakeryDetail}
             detailLoading={detailLoading}
@@ -261,6 +273,8 @@ function MapTab({ bakeries, token }) {
           ref={listRef}
           bakeries={bakeries}
           selectedBakery={selectedBakery}
+          bakeryDetail={bakeryDetail}
+          detailLoading={detailLoading}
           highlightedBakeryId={hoveredBakeryId}
           onHover={handleHover}
           onLeave={handleLeave}
@@ -274,12 +288,13 @@ function MapTab({ bakeries, token }) {
 /* ═══════════════════════════════════════════════════
    RATE VIEW
    ═══════════════════════════════════════════════════ */
-function RateView({ bakeries, token, onRated, onAddBakery }) {
+function RateView({ bakeries, token, onRated, onAddBakery, onNavigate }) {
   const [bakeryId, setBakeryId] = useState("");
   const [scores, setScores] = useState({ flakiness: 0, butteriness: 0, freshness: 0, size_value: 0 });
   const [notes, setNotes] = useState("");
   const [visitedAt, setVisitedAt] = useState(new Date().toISOString().slice(0, 10));
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
   const [showAddBakery, setShowAddBakery] = useState(false);
 
   const allRated = Object.values(scores).every((v) => v > 0);
@@ -289,6 +304,7 @@ function RateView({ bakeries, token, onRated, onAddBakery }) {
     e.preventDefault();
     if (!bakeryId || !allRated) return;
     setSubmitting(true);
+    setError(null);
     try {
       await createRating(token, bakeryId, { ...scores, notes: notes || null, visited_at: visitedAt });
       // Reset
@@ -297,8 +313,10 @@ function RateView({ bakeries, token, onRated, onAddBakery }) {
       setNotes("");
       setVisitedAt(new Date().toISOString().slice(0, 10));
       onRated();
+      setTimeout(() => onNavigate("journal"), 600);
     } catch (err) {
       console.error(err);
+      setError(err.message === "Unauthorized" ? "Session expired — please log in again." : "Failed to save rating. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -308,7 +326,7 @@ function RateView({ bakeries, token, onRated, onAddBakery }) {
     <section className="view active">
       <div className="view-topbar glass">
         <h2>Rate a Croissant</h2>
-        {avg && <span className="count-badge" style={{ color: "var(--blue-mid)", fontWeight: 700, fontSize: 15 }}>{avg}</span>}
+        {avg && <span className="count-badge" style={{ color: "var(--terracotta)", fontWeight: 700, fontSize: 15 }}>{avg}</span>}
       </div>
       <div className="view-scroll">
         <div className="container container-sm">
@@ -363,6 +381,12 @@ function RateView({ bakeries, token, onRated, onAddBakery }) {
                 <input type="date" value={visitedAt} onChange={(e) => setVisitedAt(e.target.value)} />
               </div>
             </fieldset>
+
+            {error && (
+              <div style={{ background: "var(--error-bg)", color: "var(--error-text)", fontSize: 13, padding: "10px 14px", borderRadius: 10, border: "1px solid #F0D8C8" }}>
+                {error}
+              </div>
+            )}
 
             <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={submitting || !allRated || !bakeryId}>
               {submitting ? "Saving..." : "Save Rating"}
@@ -436,7 +460,7 @@ function AddBakeryModal({ token, onAdded, onClose }) {
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <PlaceSearch
             onSelect={handlePlaceSelect}
-            inputClass="w-full rounded-[10px] border border-[#DDE3E8] bg-white px-4 py-3 text-sm text-[#1E2D3D] placeholder:text-[#A8B5BF] focus:outline-none focus:ring-2 focus:ring-[#7BA0CC]/15 focus:border-[#7BA0CC] transition-all"
+            inputClass="w-full rounded-[10px] border border-[#DDE3E8] bg-white px-4 py-3 text-sm text-[#1E2D3D] placeholder:text-[#A8B5BF] focus:outline-none focus:ring-2 focus:ring-[#C2785A]/15 focus:border-[#C2785A] transition-all"
           />
           <div className="field">
             <label>Name</label>
@@ -539,9 +563,30 @@ function MainApp() {
   }, [accessToken]);
 
   useEffect(() => {
-    loadBakeries();
-    loadRatings();
-  }, [loadBakeries, loadRatings]);
+    if (!accessToken) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const [bakeryData, ratingData] = await Promise.all([
+          fetchBakeries(accessToken),
+          fetchMyRatings(accessToken),
+        ]);
+        if (cancelled) return;
+        setBakeries(bakeryData);
+        ratingData.sort((a, b) => {
+          const dateA = a.visited_at || a.created_at;
+          const dateB = b.visited_at || b.created_at;
+          return dateB.localeCompare(dateA);
+        });
+        setRatings(ratingData);
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [accessToken]);
 
   function showToast(msg) {
     setToast(msg);
@@ -557,6 +602,12 @@ function MainApp() {
   function handleBakeryAdded() {
     showToast("Bakery added!");
     loadBakeries();
+  }
+
+  function handleBakeryDeleted() {
+    showToast("Bakery removed");
+    loadBakeries();
+    loadRatings();
   }
 
   return (
@@ -591,9 +642,9 @@ function MainApp() {
       {/* Main content */}
       <main className="main-content">
         {activeTab === "home" && <HomeView bakeries={bakeries} ratings={ratings} onNavigate={setActiveTab} />}
-        {activeTab === "map" && <MapTab bakeries={bakeries} token={accessToken} />}
+        {activeTab === "map" && <MapTab bakeries={bakeries} token={accessToken} onBakeryDeleted={handleBakeryDeleted} />}
         {activeTab === "rate" && (
-          <RateView bakeries={bakeries} token={accessToken} onRated={handleRated} onAddBakery={handleBakeryAdded} />
+          <RateView bakeries={bakeries} token={accessToken} onRated={handleRated} onAddBakery={handleBakeryAdded} onNavigate={setActiveTab} />
         )}
         {activeTab === "journal" && <JournalView ratings={ratings} />}
 

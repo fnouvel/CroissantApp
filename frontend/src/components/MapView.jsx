@@ -52,7 +52,7 @@ function BakeryMarker({ bakery, onHover, onLeave, onClick, isHighlighted }) {
   );
 }
 
-function BakeryPopup({ bakery, detail, loading, onClose }) {
+function BakeryPopup({ bakery, detail, loading, onClose, onDelete }) {
   const agg = detail?.aggregate;
 
   return (
@@ -124,6 +124,33 @@ function BakeryPopup({ bakery, detail, loading, onClose }) {
             No ratings yet
           </div>
         )}
+
+        {/* Delete button */}
+        <button
+          onClick={() => onDelete(bakery)}
+          style={{
+            width: "100%",
+            marginTop: 10,
+            padding: "6px 0",
+            background: "none",
+            border: "1px solid #e0d5ca",
+            borderRadius: 8,
+            fontSize: 12,
+            color: "var(--text-muted)",
+            cursor: "pointer",
+            transition: "all 0.15s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = "#C2785A";
+            e.currentTarget.style.color = "#C2785A";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = "#e0d5ca";
+            e.currentTarget.style.color = "var(--text-muted)";
+          }}
+        >
+          Remove bakery
+        </button>
       </div>
     </Popup>
   );
@@ -172,7 +199,7 @@ function HoverTooltip({ bakery }) {
   );
 }
 
-export default function MapView({ ref, bakeries, onBakeryClick, selectedBakery, bakeryDetail, detailLoading, highlightedBakeryId }) {
+export default function MapView({ ref, bakeries, onBakeryClick, onDeleteBakery, selectedBakery, bakeryDetail, detailLoading, highlightedBakeryId }) {
   const mapRef = useRef(null);
   const [hoveredBakery, setHoveredBakery] = useState(null);
   const mappable = useMemo(
@@ -245,6 +272,7 @@ export default function MapView({ ref, bakeries, onBakeryClick, selectedBakery, 
           detail={bakeryDetail}
           loading={detailLoading}
           onClose={handleClose}
+          onDelete={onDeleteBakery}
         />
       )}
     </Map>

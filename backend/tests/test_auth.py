@@ -80,7 +80,7 @@ def test_logout_clears_cookie(client):
 def test_after_logout_refresh_returns_401(client):
     client.post("/api/auth/register", json={"username": "sam", "password": "secret"})
     login_res = client.post("/api/auth/login", json={"username": "sam", "password": "secret"})
-    refresh_cookie = login_res.cookies.get("refresh_token")
+    login_res.cookies.get("refresh_token")
 
     # Logout
     client.post("/api/auth/logout")
