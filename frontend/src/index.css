@@ -1073,6 +1073,13 @@ body {
   margin: 0;
 }
 
+.bakery-rating-card-price {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--terracotta);
+  margin: 2px 0 0;
+}
+
 @media (min-width: 1024px) {
   .explore-layout {
     flex-direction: row;
@@ -1330,6 +1337,13 @@ body {
   line-height: 1.5;
   margin-bottom: 8px;
   font-style: italic;
+}
+
+.rating-card-price {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--terracotta);
+  margin-bottom: 8px;
 }
 
 .rating-card-footer {

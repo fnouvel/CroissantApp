@@ -297,6 +297,7 @@ function RateView({ bakeries, token, onRated, onAddBakery, onNavigate }) {
   const [bakeryId, setBakeryId] = useState("");
   const [scores, setScores] = useState({ flakiness: 0, butteriness: 0, freshness: 0, size_value: 0 });
   const [notes, setNotes] = useState("");
+  const [price, setPrice] = useState("");
   const [visitedAt, setVisitedAt] = useState(new Date().toISOString().slice(0, 10));
   const [photo, setPhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -314,11 +315,12 @@ function RateView({ bakeries, token, onRated, onAddBakery, onNavigate }) {
     setSubmitting(true);
     setError(null);
     try {
-      await createRating(token, bakeryId, { ...scores, notes: notes || null, visited_at: visitedAt, photo });
+      await createRating(token, bakeryId, { ...scores, notes: notes || null, price: price || null, visited_at: visitedAt, photo });
       // Reset
       setBakeryId("");
       setScores({ flakiness: 0, butteriness: 0, freshness: 0, size_value: 0 });
       setNotes("");
+      setPrice("");
       setVisitedAt(new Date().toISOString().slice(0, 10));
       setPhoto(null);
       setPhotoPreview(null);
@@ -384,6 +386,17 @@ function RateView({ bakeries, token, onRated, onAddBakery, onNavigate }) {
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Flaky layers, rich butter aroma, perfectly golden..."
                   rows={3}
+                />
+              </div>
+              <div className="field">
+                <label>Price ($)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="e.g. 4.50"
                 />
               </div>
               <div className="field">
@@ -575,6 +588,7 @@ function JournalView({ ratings }) {
                       <FillBar label="Size & Value" value={r.size_value} size="sm" />
                     </div>
                     {r.notes && <div className="rating-card-notes">"{r.notes}"</div>}
+                    {r.price != null && <div className="rating-card-price">${Number(r.price).toFixed(2)}</div>}
                     <div className="rating-card-footer">
                       <span className="rating-card-date">{r.visited_at || r.created_at?.slice(0, 10)}</span>
                       <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{r.username}</span>

@@ -45,6 +45,9 @@ function RatingCard({ rating }) {
       {rating.notes && (
         <p className="bakery-rating-card-notes">"{rating.notes}"</p>
       )}
+      {rating.price != null && (
+        <p className="bakery-rating-card-price">${Number(rating.price).toFixed(2)}</p>
+      )}
     </div>
   );
 }

@@ -69,6 +69,7 @@ def _rating_to_out(r: Rating) -> RatingOut:
         size_value=r.size_value,
         overall_score=r.score,
         notes=r.notes,
+        price=r.price,
         photo_url=r.photo_url,
         visited_at=r.visited_at,
         created_at=r.created_at,

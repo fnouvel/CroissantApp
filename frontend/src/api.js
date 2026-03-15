@@ -45,13 +45,14 @@ export async function deleteBakery(token, id) {
   if (!res.ok) throw new Error("Failed to delete bakery");
 }
 
-export async function createRating(token, bakeryId, { flakiness, butteriness, freshness, size_value, notes, visited_at, photo }) {
+export async function createRating(token, bakeryId, { flakiness, butteriness, freshness, size_value, notes, price, visited_at, photo }) {
   const form = new FormData();
   form.append("flakiness", flakiness);
   form.append("butteriness", butteriness);
   form.append("freshness", freshness);
   form.append("size_value", size_value);
   if (notes) form.append("notes", notes);
+  if (price) form.append("price", price);
   if (visited_at) form.append("visited_at", visited_at);
   if (photo) form.append("photo", photo);
 

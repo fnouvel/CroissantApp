@@ -43,6 +43,18 @@ def test_create_rating_with_categories(client):
     assert data["overall_score"] == 3.5
     assert data["username"] == "sam"
     assert data["photo_url"] is None
+    assert data["price"] is None
+
+
+def test_create_rating_with_price(client):
+    headers = _auth_header(client)
+    bakery_id = _create_bakery(client, headers)
+
+    res = _post_rating(client, bakery_id, headers,
+                       flakiness=5, butteriness=4, freshness=3, size_value=2, price=4.50)
+    assert res.status_code == 201
+    data = res.json()
+    assert data["price"] == 4.50
 
 
 def test_create_rating_validation(client):
