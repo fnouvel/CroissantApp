@@ -38,9 +38,10 @@ app.include_router(bakeries.router, dependencies=[Depends(get_current_user)])
 app.include_router(ratings.router, dependencies=[Depends(get_current_user)])
 
 
-uploads_dir = Path(__file__).resolve().parent.parent / "uploads"
-uploads_dir.mkdir(exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
+if os.getenv("STORAGE_BACKEND", "local").lower() != "supabase":
+    uploads_dir = Path(__file__).resolve().parent.parent / "uploads"
+    uploads_dir.mkdir(exist_ok=True)
+    app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
 
 
 @app.get("/api/health")

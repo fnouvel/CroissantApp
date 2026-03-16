@@ -40,7 +40,7 @@ def login(data: UserCreate, response: Response, db: Session = Depends(get_db)):
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        samesite="lax",
+        samesite="lax" if debug else "none",
         secure=not debug,
         max_age=60 * 60 * 24 * 30,  # 30 days
     )
@@ -79,5 +79,10 @@ def refresh(
 
 @router.post("/logout")
 def logout(response: Response):
-    response.delete_cookie("refresh_token")
+    debug = os.getenv("DEBUG", "false").lower() == "true"
+    response.delete_cookie(
+        "refresh_token",
+        samesite="lax" if debug else "none",
+        secure=not debug,
+    )
     return {"message": "Logged out"}

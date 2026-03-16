@@ -1,5 +1,3 @@
-import os
-import uuid
 from datetime import date
 from io import BytesIO
 
@@ -12,11 +10,9 @@ from app.database import get_db
 from app.dependencies import get_current_user
 from app.models.models import Bakery, Rating, User
 from app.schemas.schemas import RatingOut, RatingWithBakery
+from app.storage import delete_photo, upload_photo
 
 router = APIRouter(prefix="/api", tags=["ratings"])
-
-UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "uploads")
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"}
 HEIC_TYPES = {"image/heic", "image/heif"}
@@ -66,11 +62,7 @@ async def create_rating(
         else:
             ext = photo.filename.rsplit(".", 1)[-1].lower() if "." in photo.filename else "jpg"
 
-        filename = f"{uuid.uuid4().hex}.{ext}"
-        filepath = os.path.join(UPLOAD_DIR, filename)
-        with open(filepath, "wb") as f:
-            f.write(contents)
-        photo_url = f"/uploads/{filename}"
+        photo_url = upload_photo(contents, ext)
 
     overall = (flakiness + butteriness + freshness + size_value) / 4.0
 
@@ -156,9 +148,7 @@ def delete_rating(
         raise HTTPException(status_code=403, detail="Not authorized to delete this rating")
 
     if rating.photo_url:
-        photo_path = os.path.join(UPLOAD_DIR, os.path.basename(rating.photo_url))
-        if os.path.exists(photo_path):
-            os.remove(photo_path)
+        delete_photo(rating.photo_url)
 
     db.delete(rating)
     db.commit()

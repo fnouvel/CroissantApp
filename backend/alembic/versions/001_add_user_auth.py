@@ -44,10 +44,18 @@ def upgrade() -> None:
         op.create_index(op.f("ix_users_username"), "users", ["username"], unique=True)
 
     # 2. Insert sentinel user if not already present
-    op.execute(
-        "INSERT OR IGNORE INTO users (id, username, hashed_password, is_active) "
-        "VALUES (1, 'legacy', 'NOT_A_REAL_HASH', 1)"
-    )
+    bind = op.get_bind()
+    if bind.dialect.name == "sqlite":
+        op.execute(
+            "INSERT OR IGNORE INTO users (id, username, hashed_password, is_active) "
+            "VALUES (1, 'legacy', 'NOT_A_REAL_HASH', 1)"
+        )
+    else:
+        op.execute(
+            "INSERT INTO users (id, username, hashed_password, is_active) "
+            "VALUES (1, 'legacy', 'NOT_A_REAL_HASH', true) "
+            "ON CONFLICT (id) DO NOTHING"
+        )
 
     # 3. Create bakeries table (fresh DB) or add user_id column (existing DB)
     if not _table_exists("bakeries"):

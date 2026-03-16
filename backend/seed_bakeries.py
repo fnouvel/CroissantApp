@@ -1,12 +1,13 @@
 """Seed 18 real Boston-area bakeries into the database.
 
-Clears all existing bakeries (and their ratings via cascade) first,
-then inserts fresh data with hardcoded coordinates.
+By default, upserts bakeries (insert or update) without touching ratings.
+Pass --reset to wipe all bakeries+ratings and re-insert (local dev only).
 
 Usage:
     cd backend
     source venv/bin/activate
-    python seed_bakeries.py
+    python seed_bakeries.py          # idempotent upsert
+    python seed_bakeries.py --reset  # destructive reset (local dev)
 """
 
 import sys
@@ -40,21 +41,38 @@ BAKERIES = [
 
 
 def main():
+    reset = "--reset" in sys.argv
     db = SessionLocal()
     try:
-        # Delete all ratings first (FK constraint), then all bakeries
-        rating_count = db.query(Rating).delete()
-        bakery_count = db.query(Bakery).delete()
-        db.commit()
-        print(f"Deleted {bakery_count} bakeries and {rating_count} ratings")
+        if reset:
+            rating_count = db.query(Rating).delete()
+            bakery_count = db.query(Bakery).delete()
+            db.commit()
+            print(f"[reset] Deleted {bakery_count} bakeries and {rating_count} ratings")
 
-        # Insert 18 bakeries
-        for data in BAKERIES:
-            db.add(Bakery(**data, user_id=None))
-        db.commit()
-        print(f"Inserted {len(BAKERIES)} bakeries")
+            for data in BAKERIES:
+                db.add(Bakery(**data, user_id=None))
+            db.commit()
+            print(f"Inserted {len(BAKERIES)} bakeries")
+        else:
+            inserted = 0
+            updated = 0
+            for data in BAKERIES:
+                existing = db.query(Bakery).filter(Bakery.name == data["name"]).first()
+                if existing:
+                    changed = False
+                    for key in ("address", "latitude", "longitude"):
+                        if getattr(existing, key) != data[key]:
+                            setattr(existing, key, data[key])
+                            changed = True
+                    if changed:
+                        updated += 1
+                else:
+                    db.add(Bakery(**data, user_id=None))
+                    inserted += 1
+            db.commit()
+            print(f"Upserted bakeries: {inserted} inserted, {updated} updated, {len(BAKERIES) - inserted - updated} unchanged")
 
-        # Verify
         total = db.query(Bakery).count()
         print(f"\nDatabase now has {total} bakeries")
     finally:

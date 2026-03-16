@@ -588,7 +588,7 @@ function JournalView({ ratings, token, onDelete }) {
                   {r.photo_url && (
                     <img
                       className="rating-card-photo"
-                      src={`${import.meta.env.VITE_API_URL.replace('/api', '')}${r.photo_url}`}
+                      src={r.photo_url.startsWith("http") ? r.photo_url : `${import.meta.env.VITE_API_URL.replace('/api', '')}${r.photo_url}`}
                       alt={`${r.bakery_name || "Bakery"} croissant`}
                     />
                   )}

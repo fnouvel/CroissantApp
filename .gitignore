@@ -37,3 +37,9 @@ backend/uploads/
 
 # Build artifacts
 *.log
+
+# Supabase local temp
+supabase/.temp/
+
+# Misc
+temp_*

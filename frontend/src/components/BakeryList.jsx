@@ -19,7 +19,7 @@ function RatingCard({ rating }) {
       {rating.photo_url && (
         <img
           className="bakery-rating-card-photo"
-          src={`${API_BASE}${rating.photo_url}`}
+          src={rating.photo_url.startsWith("http") ? rating.photo_url : `${API_BASE}${rating.photo_url}`}
           alt="Croissant"
         />
       )}
