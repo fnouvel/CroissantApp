@@ -67,6 +67,16 @@ export async function createRating(token, bakeryId, { flakiness, butteriness, fr
   return res.json();
 }
 
+export async function deleteRating(token, id) {
+  const res = await fetch(`${API}/ratings/${id}`, {
+    method: "DELETE",
+    credentials: "include",
+    headers: { Authorization: "Bearer " + token },
+  });
+  if (res.status === 401) throw new Error("Unauthorized");
+  if (!res.ok) throw new Error("Failed to delete rating");
+}
+
 export async function fetchMyRatings(token) {
   const res = await fetch(`${API}/ratings/me`, {
     credentials: "include",

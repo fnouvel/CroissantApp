@@ -78,7 +78,7 @@ frontend/src/
 
 **Rating model**: `Rating` has four integer columns (`flakiness`, `butteriness`, `freshness`, `size_value`, each 1–5) plus a computed `score` float (their average, calculated in the router before insert, not stored in DB). Ratings also have an optional `photo_url` (local file path served via `/uploads/`).
 
-**Photo uploads**: The `POST /api/bakeries/{id}/ratings` endpoint accepts `multipart/form-data` (not JSON) with an optional `photo` file field (JPEG/PNG/WebP, max 5 MB). Files are saved to `backend/uploads/` and served via FastAPI `StaticFiles` at `/uploads/`. The `api.js` `createRating` function uses `FormData`.
+**Photo uploads**: The `POST /api/bakeries/{id}/ratings` endpoint accepts `multipart/form-data` (not JSON) with an optional `photo` file field (JPEG/PNG/WebP/HEIC, max 5 MB). HEIC/HEIF images (iPhone default) are converted to JPEG server-side via `Pillow` + `pillow-heif`. Files are saved to `backend/uploads/` and served via FastAPI `StaticFiles` at `/uploads/`. The `api.js` `createRating` function uses `FormData`.
 
 **avg_score on Bakery**: Routers compute `avg_score` via SQL aggregate at query time and inject it into `BakeryOut` — it is not a stored column.
 

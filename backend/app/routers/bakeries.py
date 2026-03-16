@@ -43,6 +43,7 @@ def _compute_aggregate(db: Session, bakery_id: int) -> BakeryAggregate:
         func.avg(Rating.size_value),
         func.avg(Rating.score),
         func.count(Rating.id),
+        func.avg(Rating.price),
     ).filter(Rating.bakery_id == bakery_id).first()
 
     if not row or row[5] == 0:
@@ -55,6 +56,7 @@ def _compute_aggregate(db: Session, bakery_id: int) -> BakeryAggregate:
         avg_size_value=round(row[3], 2) if row[3] else None,
         avg_overall=round(row[4], 2) if row[4] else None,
         rating_count=row[5],
+        avg_price=round(row[6], 2) if row[6] else None,
     )
 
 

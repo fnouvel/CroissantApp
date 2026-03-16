@@ -55,6 +55,7 @@ class BakeryAggregate(BaseModel):
     avg_freshness: float | None = None
     avg_size_value: float | None = None
     avg_overall: float | None = None
+    avg_price: float | None = None
     rating_count: int = 0
 
 

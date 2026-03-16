@@ -1,8 +1,11 @@
 import os
 import uuid
 from datetime import date
+from io import BytesIO
 
+import pillow_heif
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from PIL import Image
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -15,8 +18,11 @@ router = APIRouter(prefix="/api", tags=["ratings"])
 UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
+ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"}
+HEIC_TYPES = {"image/heic", "image/heif"}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
+
+pillow_heif.register_heif_opener()
 
 
 @router.post("/bakeries/{bakery_id}/ratings", response_model=RatingOut, status_code=201)
@@ -45,11 +51,21 @@ async def create_rating(
     photo_url = None
     if photo and photo.filename:
         if photo.content_type not in ALLOWED_TYPES:
-            raise HTTPException(status_code=400, detail="Only JPEG, PNG, and WebP images are allowed")
+            raise HTTPException(status_code=400, detail="Only JPEG, PNG, WebP, and HEIC images are allowed")
         contents = await photo.read()
         if len(contents) > MAX_FILE_SIZE:
             raise HTTPException(status_code=400, detail="Image must be under 5 MB")
-        ext = photo.filename.rsplit(".", 1)[-1].lower() if "." in photo.filename else "jpg"
+
+        if photo.content_type in HEIC_TYPES:
+            img = Image.open(BytesIO(contents))
+            img = img.convert("RGB")
+            buf = BytesIO()
+            img.save(buf, format="JPEG", quality=90)
+            contents = buf.getvalue()
+            ext = "jpg"
+        else:
+            ext = photo.filename.rsplit(".", 1)[-1].lower() if "." in photo.filename else "jpg"
+
         filename = f"{uuid.uuid4().hex}.{ext}"
         filepath = os.path.join(UPLOAD_DIR, filename)
         with open(filepath, "wb") as f:
@@ -125,3 +141,24 @@ def my_ratings(
             )
         )
     return result
+
+
+@router.delete("/ratings/{rating_id}", status_code=204)
+def delete_rating(
+    rating_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    rating = db.query(Rating).filter(Rating.id == rating_id).first()
+    if not rating:
+        raise HTTPException(status_code=404, detail="Rating not found")
+    if rating.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this rating")
+
+    if rating.photo_url:
+        photo_path = os.path.join(UPLOAD_DIR, os.path.basename(rating.photo_url))
+        if os.path.exists(photo_path):
+            os.remove(photo_path)
+
+    db.delete(rating)
+    db.commit()

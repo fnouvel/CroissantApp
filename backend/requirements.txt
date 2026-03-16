@@ -8,6 +8,8 @@ PyJWT==2.11.0
 pwdlib[argon2]==0.2.1
 python-dotenv
 python-multipart
+Pillow
+pillow-heif
 pytest
 pytest-asyncio
 requests

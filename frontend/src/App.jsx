@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { fetchBakeries, fetchBakery, fetchMyRatings, createRating, createBakery, deleteBakery } from "./api";
+import { fetchBakeries, fetchBakery, fetchMyRatings, createRating, createBakery, deleteBakery, deleteRating } from "./api";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import LoginForm from "./components/LoginForm";
 import MapView from "./components/MapView";
@@ -70,14 +70,15 @@ function CroissantRating({ value, onChange, label }) {
    HOME VIEW
    ═══════════════════════════════════════════════════ */
 function HomeView({ bakeries, ratings, onNavigate, onBakerySelect }) {
-  const ratedCount = ratings.length;
+  const ratedCount = new Set(ratings.map((r) => r.bakery_id)).size;
   const bakeryCount = bakeries.length;
-  const avgScore = ratings.length > 0
-    ? (ratings.reduce((sum, r) => sum + r.overall_score, 0) / ratings.length).toFixed(1)
+  const scoredBakeries = bakeries.filter((b) => b.avg_score != null && b.avg_score > 0);
+  const avgScore = scoredBakeries.length > 0
+    ? (scoredBakeries.reduce((sum, b) => sum + b.avg_score, 0) / scoredBakeries.length).toFixed(1)
     : "—";
 
-  // Top rated = ratings sorted by score desc
-  const topRated = [...ratings].sort((a, b) => b.overall_score - a.overall_score).slice(0, 3);
+  // Top rated = bakeries with scores, sorted by avg_score desc
+  const topRated = [...bakeries].filter((b) => b.avg_score != null && b.avg_score > 0).sort((a, b) => b.avg_score - a.avg_score).slice(0, 3);
 
   // Recent = last 5 ratings
   const recent = [...ratings].slice(0, 5);
@@ -128,16 +129,16 @@ function HomeView({ bakeries, ratings, onNavigate, onBakerySelect }) {
             </div>
             {topRated.length > 0 ? (
               <div className="scroll-row">
-                {topRated.map((r, i) => (
-                  <button key={r.id} className="top-card" onClick={() => onNavigate("journal")}>
+                {topRated.map((b, i) => (
+                  <button key={b.id} className="top-card" onClick={() => onBakerySelect(b)}>
                     <div className="top-card-placeholder">
                       <span className="top-card-rank">{["1st", "2nd", "3rd"][i]}</span>
                       🥐
                     </div>
                     <div className="top-card-body">
-                      <h4>{r.bakery_name || `Bakery #${r.bakery_id}`}</h4>
-                      <div className="top-card-meta">{r.visited_at || r.created_at?.slice(0, 10)}</div>
-                      <div className="top-card-score">{r.overall_score.toFixed(1)} / 5</div>
+                      <h4>{b.name}</h4>
+                      <div className="top-card-meta">{b.address}</div>
+                      <div className="top-card-score">{b.avg_score.toFixed(1)} / 5</div>
                     </div>
                   </button>
                 ))}
@@ -404,7 +405,7 @@ function RateView({ bakeries, token, onRated, onAddBakery, onNavigate }) {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/jpeg,image/png,image/webp"
+                  accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
                   style={{ display: "none" }}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
@@ -550,7 +551,22 @@ function AddBakeryModal({ token, onAdded, onClose }) {
 /* ═══════════════════════════════════════════════════
    JOURNAL VIEW (My Ratings)
    ═══════════════════════════════════════════════════ */
-function JournalView({ ratings }) {
+function JournalView({ ratings, token, onDelete }) {
+  const [deleting, setDeleting] = useState(null);
+
+  async function handleDelete(rating) {
+    if (!confirm(`Delete your rating for ${rating.bakery_name || "this bakery"}?`)) return;
+    setDeleting(rating.id);
+    try {
+      await deleteRating(token, rating.id);
+      onDelete();
+    } catch (err) {
+      console.error("Failed to delete rating:", err);
+    } finally {
+      setDeleting(null);
+    }
+  }
+
   return (
     <section className="view active">
       <div className="view-topbar glass">
@@ -593,6 +609,22 @@ function JournalView({ ratings }) {
                       <span className="rating-card-date">{r.visited_at || r.created_at?.slice(0, 10)}</span>
                       <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{r.username}</span>
                     </div>
+                    <button
+                      className="link-btn"
+                      disabled={deleting === r.id}
+                      onClick={() => handleDelete(r)}
+                      style={{
+                        marginTop: 8,
+                        fontSize: 12,
+                        color: "var(--text-muted)",
+                        cursor: "pointer",
+                        transition: "color 0.15s ease",
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = "#C2785A"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-muted)"; }}
+                    >
+                      {deleting === r.id ? "Deleting..." : "Delete"}
+                    </button>
                   </div>
                 </div>
               ))}
@@ -738,7 +770,7 @@ function MainApp() {
         {activeTab === "rate" && (
           <RateView bakeries={bakeries} token={accessToken} onRated={handleRated} onAddBakery={handleBakeryAdded} onNavigate={setActiveTab} />
         )}
-        {activeTab === "journal" && <JournalView ratings={ratings} />}
+        {activeTab === "journal" && <JournalView ratings={ratings} token={accessToken} onDelete={() => { loadRatings(); loadBakeries(); }} />}
 
         {/* Bottom Tab Bar (mobile) */}
         <nav className="tab-bar">

@@ -112,6 +112,24 @@ function BakeryPopup({ bakery, detail, loading, onClose, onDelete }) {
               <FillBar label="Freshness" value={agg.avg_freshness} size="sm" />
               <FillBar label="Size & Value" value={agg.avg_size_value} size="sm" />
             </div>
+
+            {/* Average price */}
+            {agg.avg_price != null && (
+              <div style={{
+                marginTop: 8,
+                padding: "5px 10px",
+                background: "var(--bg)",
+                borderRadius: 10,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}>
+                <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Avg. price</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", fontFamily: "'Fraunces', serif" }}>
+                  ${agg.avg_price.toFixed(2)}
+                </span>
+              </div>
+            )}
           </>
         ) : (
           <div style={{
