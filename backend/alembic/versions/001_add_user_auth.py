@@ -56,6 +56,8 @@ def upgrade() -> None:
             "VALUES (1, 'legacy', 'NOT_A_REAL_HASH', true) "
             "ON CONFLICT (id) DO NOTHING"
         )
+        # Advance the sequence past the explicitly-inserted id
+        op.execute("SELECT setval('users_id_seq', GREATEST(nextval('users_id_seq'), 2))")
 
     # 3. Create bakeries table (fresh DB) or add user_id column (existing DB)
     if not _table_exists("bakeries"):
